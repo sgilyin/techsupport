@@ -40,7 +40,7 @@ class HTML {
             Адрес: $bgb_result->address<br>
             Статус договора: $bgb_result->status<br>
             Тарифный план: $bgb_result->tariff<br>
-            Баланс: $bgb_result->balance (~".static::getCountDays($bgb_result->tariff, $bgb_result->balance)." дней до блокировки)
+            Баланс: $bgb_result->balance (Дней до блокировки: ~ ".static::getCountDays($bgb_result->tariff, $bgb_result->balance).")
             </div></div>";
 
         return $html;
@@ -191,7 +191,7 @@ class HTML {
                 break;
         }
 
-        return intdiv($balance, $cost/intval(date("t")));
+        return floor($balance/($cost/intval(date("t"))));
     }
 
     private function getMacVendor($mac) {
