@@ -32,6 +32,7 @@ class EdgeCore {
         $data->dhcpSnoopBindingsLeaseTime = preg_replace('/Gauge32: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.46.4.1.1.7"));
         $data->macs = preg_replace('/Hex-STRING: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.17.4.3.1.1"));
         $data->macPorts = preg_replace('/INTEGER: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.17.4.3.1.2"));
+        $data->ifAdminStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.7.$port")));
         $data->ifOperStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.8.$port")));
         $data->portInUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.4.$port")))/100;
         $data->portOutUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.7.$port")))/100;

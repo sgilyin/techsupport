@@ -55,14 +55,8 @@ class HTML {
     }
 
     public static function getPortInfo($bgb_result, $edgeCoreData) {
-        switch ($edgeCoreData->ifOperStatus){
-            case 1:
-                $ifOperStatus = 'Есть';
-                break;
-            default:
-                $ifOperStatus = 'Нет';
-                break;
-        }
+        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Есть' : 'Нет';
+        $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Порт потушен!</b></font>' : '';
 
         for ($i=0; $i<count($edgeCoreData->dhcpSnoopBindingsIpAddress); $i++){
             if (intval($bgb_result->port)<25 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))<5){
@@ -85,7 +79,7 @@ class HTML {
         }
 
         $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Порт: $bgb_result->port Актив: $ifOperStatus ($edgeCoreData->ifLastChange)<br>
+            Порт: $bgb_result->port Актив: $ifOperStatus$ifAdminStatus ($edgeCoreData->ifLastChange)<br>
             Download: $edgeCoreData->portOutUtil Mbps Upload: $edgeCoreData->portInUtil Mbps (300 sec.)<br>
             IP-адреса:<br>$ip
             MAC-адреса:<br>$mac
