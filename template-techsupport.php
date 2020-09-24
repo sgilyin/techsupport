@@ -40,27 +40,39 @@ if (!$inputRequestData['cid']){
     echo HTML::getIdForm($cid);
     $bgb_result = BGB::getData($cid);
 
-    if ($bgb_result->host && $bgb_result->port){
-        if ($inputRequestData['btnCableTest']){
-            EdgeCore::cableTest($bgb_result->host, $bgb_result->port);
-        }
+    switch ($bgb_result->type) {
+        case 'GePON':
+            echo '<p>Договор из группы PON</p>'.$htmlEmptyForm;
+            break;
 
-        $edgeCoreData = EdgeCore::getData($bgb_result->host, $bgb_result->port);
+        case 'Gray-IP':
+            if ($bgb_result->host && $bgb_result->port){
+                if ($inputRequestData['btnCableTest']){
+                    EdgeCore::cableTest($bgb_result->host, $bgb_result->port);
+                }
 
-        echo HTML::getContractInfo($bgb_result);
-        echo HTML::getSwitchInfo($bgb_result, $edgeCoreData);
-        echo HTML::getPortInfo($bgb_result, $edgeCoreData);
-        echo HTML::getCableTestInfo($edgeCoreData);
-        echo HTML::getSwitchLog($bgb_result->host);
-        echo HTML::getBitrixForm($bgb_result);
-        if ($inputRequestData['bx']['address'] && $inputRequestData['bx']['type'] && $inputRequestData['bx']['halfDay'] && $inputRequestData['bx']['date']){
-            $bx = BX24::createTask($inputRequestData['cid'], $inputRequestData['bx'], $bgb_result, $edgeCoreData);
-            if ($bx->result->task->id){
-                echo '<script language="javascript">alert("Задача в Битрикс создана")</script>';
+                $edgeCoreData = EdgeCore::getData($bgb_result->host, $bgb_result->port);
+
+                echo HTML::getContractInfo($bgb_result);
+                echo HTML::getSwitchInfo($bgb_result, $edgeCoreData);
+                echo HTML::getPortInfo($bgb_result, $edgeCoreData);
+                echo HTML::getCableTestInfo($edgeCoreData);
+                echo HTML::getSwitchLog($bgb_result->host);
+                echo HTML::getBitrixForm($bgb_result);
+                if ($inputRequestData['bx']['address'] && $inputRequestData['bx']['type'] && $inputRequestData['bx']['halfDay'] && $inputRequestData['bx']['date']){
+                    $bx = BX24::createTask($inputRequestData['cid'], $inputRequestData['bx'], $bgb_result, $edgeCoreData);
+                    if ($bx->result->task->id){
+                        echo '<script language="javascript">alert("Задача в Битрикс создана")</script>';
+                    }
+                }
+            } else {
+                echo '<p>Договор не подключен</p>'.$htmlEmptyForm;
             }
-        }
-    } else {
-        echo '<p>Договор не подключен</p>'.$htmlEmptyForm;
+            break;
+
+        default:
+            echo '<p>Такого обработчика пока нет :-) Вот как будет мне не лень, мы обязательно что-то придумаем ;-)</p>'.$htmlEmptyForm;
+            break;
     }
 }
 get_footer();

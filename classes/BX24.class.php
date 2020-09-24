@@ -49,7 +49,7 @@ class BX24 {
         $btrx = new stdClass();
         switch ($type) {
             case 'faultEth':
-                $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
+                $btrx->responsible_id = 12;// Ответственный 12 - Саня, 18 - Женя
                 $btrx->accomplices = array(1);// Соисполнители
                 $btrx->auditors = array(668,6768);// Наблюдатели
                 $btrx->tags = array('Неисправность','Ethernet', 'Заявка', 'Internet');// Теги задачи
