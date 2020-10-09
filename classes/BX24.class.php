@@ -68,14 +68,13 @@ class BX24 {
      * @return String
      */
     private function getPhoneLink($phonesString) {
-        //$phonesArray = explode(",", preg_replace('/[^0-9,]/', '', $phonesString));
-        $phonesArray = preg_split("/[ ,;.]/", $phonesString);
+        $phonesArray = preg_split("/[ ,;.]/", preg_replace('/[^0-9, ]/', '', $phonesString));
         for ($i = 0; $i < count($phonesArray); $i++) {
             if ($phonesArray[$i]) {
-                $result .= "<a href='tel:$phonesArray[$i]'>$phonesArray[$i]</a>, ";
+                $phonesLinksArray[$i] = "<a href='tel:$phonesArray[$i]'>$phonesArray[$i]</a>";
             }
         }
-        return $result;
+        return implode(', ', $phonesLinksArray);
     }
 
     public static function createTask($cid, $bx24Data, $bgb_result, $edgeCoreData) {
