@@ -41,7 +41,7 @@ class EdgeCore {
         $data->cableDiagResultDistancePairB = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port")));
         $data->cableDiagResultStatusPairA = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port"))));
         $data->cableDiagResultStatusPairB = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port"))));
-
+        $data->test = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1.1');
 
         return $data;
     }

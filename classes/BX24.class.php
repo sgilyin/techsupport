@@ -68,9 +68,12 @@ class BX24 {
      * @return String
      */
     private function getPhoneLink($phonesString) {
-        $phonesArray = explode(",", preg_replace('/[^0-9,]/', '', $phonesString));
+        //$phonesArray = explode(",", preg_replace('/[^0-9,]/', '', $phonesString));
+        $phonesArray = preg_split("/[ ,;.]/", $phonesString);
         for ($i = 0; $i < count($phonesArray); $i++) {
-            $result .= "<a href='tel:$phonesArray[$i]'>$phonesArray[$i]</a>, ";
+            if ($phonesArray[$i]) {
+                $result .= "<a href='tel:$phonesArray[$i]'>$phonesArray[$i]</a>, ";
+            }
         }
         return $result;
     }
