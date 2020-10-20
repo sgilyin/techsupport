@@ -36,9 +36,10 @@ class HTML {
     }
 
     public static function getContractInfo($bgb_result) {
+        $status = ($bgb_result->status == 'Активен') ? $bgb_result->status : "<font color='red'><b>$bgb_result->status</b></font>";
         $html = "<div class='entry'><div class='woo-sc-box normal rounded full'>
             Адрес: $bgb_result->address<br>
-            Статус договора: $bgb_result->status<br>
+            Статус договора: $status<br>
             Тарифный план: $bgb_result->tariff<br>
             Баланс: $bgb_result->balance (Дней до блокировки: ~ ".static::getCountDays($bgb_result->tariff, $bgb_result->balance).")
             </div></div>";
@@ -55,7 +56,7 @@ class HTML {
     }
 
     public static function getPortInfo($bgb_result, $edgeCoreData) {
-        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Есть' : 'Нет';
+        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Есть' : '<font color="red"><b>Нет</b></font>';
         $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Порт потушен!</b></font>' : '';
 
         for ($i=0; $i<count($edgeCoreData->dhcpSnoopBindingsIpAddress); $i++){
