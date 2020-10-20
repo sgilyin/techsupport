@@ -136,7 +136,7 @@ class BX24 {
         $task['fields']['GROUP_ID'] = $btrx->group_id;
         $task['fields']['ALLOW_CHANGE_DEADLINE'] = 'Y';
         $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 4 hour'));
-        $task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>$cableTestInfo<br><br>".$bx24Data['description'];
+        $task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>Коммутатор: $bgb_result->host<br>Порт: $bgb_result->port<br><br>$cableTestInfo<br><br>".$bx24Data['description'];
         $task['fields']['START_DATE_PLAN'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00'));
         $task['fields']['END_DATE_PLAN'] = date('c',strtotime($task['fields']['START_DATE_PLAN'].'+ 3 hour'));    
 
