@@ -57,11 +57,8 @@ if (!$inputRequestData['cid']){
                 echo HTML::getSwitchInfo($bgb_result, $edgeCoreData);
                 echo HTML::getPortInfo($bgb_result, $edgeCoreData);
                 echo HTML::getCableTestInfo($edgeCoreData);
-                echo HTML::getSwitchLog($bgb_result->host);
+                #echo HTML::getSwitchLog($bgb_result->host);
                 echo HTML::getBitrixForm($bgb_result);
-                ksort($edgeCoreData->test);
-                print_r($edgeCoreData->test);
-                var_dump(count($edgeCoreData->test));
                 if ($inputRequestData['bx']['address'] && $inputRequestData['bx']['type'] && $inputRequestData['bx']['halfDay'] && $inputRequestData['bx']['date']){
                     $bx = BX24::createTask($inputRequestData['cid'], $inputRequestData['bx'], $bgb_result, $edgeCoreData);
                     if ($bx->result->task->id){

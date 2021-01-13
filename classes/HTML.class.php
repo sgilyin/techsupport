@@ -38,6 +38,7 @@ class HTML {
     public static function getContractInfo($bgb_result) {
         $status = ($bgb_result->status == 'Активен') ? $bgb_result->status : "<font color='red'><b>$bgb_result->status</b></font>";
         $html = "<div class='entry'><div class='woo-sc-box normal rounded full'>
+            Абонент: $bgb_result->abonent<br>
             Адрес: $bgb_result->address<br>
             Статус договора: $status<br>
             Тарифный план: $bgb_result->tariff<br>
@@ -49,7 +50,7 @@ class HTML {
 
     public static function getSwitchInfo($bgb_result, $edgeCoreData) {
         $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Коммутатор: $bgb_result->host Uptime: $edgeCoreData->sysUpTime
+            Коммутатор: $bgb_result->host Uptime: $edgeCoreData->sysUpTime    <a class='button' target='_blank' href='https://fialka.tv/techsupport/get-log.php?host=$bgb_result->host'>LOG</a>
             </div></div>";
 
         return $html;
@@ -62,12 +63,12 @@ class HTML {
         for ($i=0; $i<count($edgeCoreData->dhcpSnoopBindingsIpAddress); $i++){
             if (intval($bgb_result->port)<25 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))<5){
                 if (intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), 1, -1)) == $bgb_result->port){
-                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.date("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
+                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.gmdate("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
                 }
             }
             if (intval($bgb_result->port)>24 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))>4){
                 if (intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), 1, -1))+24 == $bgb_result->port){
-                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.date("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
+                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.gmdate("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
                 }
             }
         }

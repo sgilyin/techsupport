@@ -26,7 +26,8 @@ class EdgeCore {
     public static function getData($host, $port) {
         $data = new stdClass();
         $data->sysUpTime = preg_replace('/Timeticks: \(\d*\) /m', '', snmp2_get($host, SNMP_COMMUNITY, '.1.3.6.1.2.1.1.3.0'));
-        $data->ifLastChange = date("H:i:s", $data->sysUpTime.' - '.preg_replace('/Timeticks: \(\d*\) /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.9.$port")));
+        $data->ifLastChange = preg_replace('/Timeticks: \(\d*\) /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.9.$port"));
+//        $data->ifLastChange = gmdate("H:i:s", $data->sysUpTime.' - '.preg_replace('/Timeticks: \(\d*\) /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.9.$port")));
 //        $data->swPortNumber = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.1.3.1.7.1")));
         $data->dhcpSnoopBindingsIpAddress = preg_replace('/IpAddress: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.46.4.1.1.5"));
         $data->dhcpSnoopBindingsLeaseTime = preg_replace('/Gauge32: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.46.4.1.1.7"));
@@ -41,7 +42,7 @@ class EdgeCore {
         $data->cableDiagResultDistancePairB = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port")));
         $data->cableDiagResultStatusPairA = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port"))));
         $data->cableDiagResultStatusPairB = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port"))));
-        $data->test = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1.1');
+        #$data->test = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1.1');
 
         return $data;
     }
@@ -111,7 +112,7 @@ class EdgeCore {
         $mysqli->query("set character_set_client='utf8'");
         $mysqli->query("set character_set_results='utf8'");
         $mysqli->query("set collation_connection='utf8_general_ci'");
-        $result = $mysqli->query("SELECT devicereportedtime, message FROM SystemEvents WHERE fromhost = '$switch' ORDER BY id DESC LIMIT 10");
+        $result = $mysqli->query("SELECT devicereportedtime, message FROM SystemEvents WHERE fromhost = '$switch' ORDER BY id DESC LIMIT 100");
         for($i = 0; $i < $result->num_rows; $i++){
             $rSysLog = $result->fetch_object();
             $tableRows = $tableRows."| $rSysLog->devicereportedtime | $rSysLog->message<br>";
