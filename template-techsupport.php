@@ -51,6 +51,14 @@ if (!$inputRequestData['cid']){
                     EdgeCore::cableTest($bgb_result->host, $bgb_result->port);
                 }
 
+                if ($inputRequestData['btnShutdown']){
+                    EdgeCore::changeIfAdminStatus($bgb_result->host, $bgb_result->port, 2);
+                }
+
+                if ($inputRequestData['btnNoShutdown']){
+                    EdgeCore::changeIfAdminStatus($bgb_result->host, $bgb_result->port, 1);
+                }
+
                 $edgeCoreData = EdgeCore::getData($bgb_result->host, $bgb_result->port);
 
                 echo HTML::getContractInfo($bgb_result);
@@ -75,4 +83,4 @@ if (!$inputRequestData['cid']){
             break;
     }
 }
-get_footer();
+#get_footer();

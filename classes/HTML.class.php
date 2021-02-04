@@ -42,7 +42,8 @@ class HTML {
             Адрес: $bgb_result->address<br>
             Статус договора: $status<br>
             Тарифный план: $bgb_result->tariff<br>
-            Баланс: $bgb_result->balance (Дней до блокировки: ~ ".static::getCountDays($bgb_result->tariff, $bgb_result->balance).")
+            Баланс: $bgb_result->balance (Дней до блокировки: ~ ".static::getCountDays($bgb_result->tariff, $bgb_result->balance).")<br>
+            Комментарий из договора: $bgb_result->comment
             </div></div>";
 
         return $html;
@@ -60,6 +61,40 @@ class HTML {
         $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Есть' : '<font color="red"><b>Нет</b></font>';
         $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Порт потушен!</b></font>' : '';
 
+        $htmlTableHeader = "
+<table>
+  <!-- <caption>DHCP Snooping Binding</caption> -->
+  <tr>
+    <td>VLAN</td>
+    <td>IP Address</td>
+    <td>Lease</td>
+    <td>MAC Address</td>
+    <td>MAC Vendor</td>
+  </tr>";
+
+        $htmlTableFooter = "</table>";
+
+        if (isset($edgeCoreData->dhcpSnoopBinPort)) {
+            for ($i = 0; $i < count($edgeCoreData->dhcpSnoopBinPort); $i++) {
+                $rows .= "<tr><td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['vlan'] . "</td>
+                    <td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['IpAddress'] . "</td>
+                    <td>" . gmdate("H:i:s", $edgeCoreData->dhcpSnoopBinPort[$i]['LeaseTime']) . "</td>
+                    <td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['mac'] . "</td>
+                    <td>" . static::getMacVendor($edgeCoreData->dhcpSnoopBinPort[$i]['mac']) . "</td></tr>";
+            }
+        }
+
+        switch ($edgeCoreData->ifAdminStatus) {
+            case 2:
+                $btnChangeIfAdminStatus = "<input type='submit' name='btnNoShutdown' value='Поднять порт'>";
+                break;
+
+            default:
+                $btnChangeIfAdminStatus = "<input type='submit' name='btnShutdown' value='Потушить порт'>";
+                break;
+        }
+
+        /*
         for ($i=0; $i<count($edgeCoreData->dhcpSnoopBindingsIpAddress); $i++){
             if (intval($bgb_result->port)<25 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))<5){
                 if (intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), 1, -1)) == $bgb_result->port){
@@ -79,12 +114,14 @@ class HTML {
                 $mac = $mac."$macDashed (". static::getMacVendor($macDashed).')<br>';
             }
         }
-
+*/
         $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Порт: $bgb_result->port Актив: $ifOperStatus$ifAdminStatus ($edgeCoreData->ifLastChange)<br>
+            Порт: $bgb_result->port Актив: $ifOperStatus$ifAdminStatus ($edgeCoreData->portSpeedDpxStatus; $edgeCoreData->ifLastChange)
+            <form method='post'>
+            $btnChangeIfAdminStatus
+            <br>
             Download: $edgeCoreData->portOutUtil Mbps Upload: $edgeCoreData->portInUtil Mbps (300 sec.)<br>
-            IP-адреса:<br>$ip
-            MAC-адреса:<br>$mac
+            $htmlTableHeader$rows$htmlTableFooter
             </div></div>";
 
         return $html;
