@@ -45,15 +45,25 @@ class BX24 {
      * @param String $type
      * @return Object
      */
-    private function getParams($type) {
+    private function getParams($btrxType) {
         $btrx = new stdClass();
-        switch ($type) {
-            case 'faultEth':
+        switch ($btrxType) {
+            case 'GePON':
+                $btrx->responsible_id = 562;// Ответственный 12 - Саня, 18 - Женя, 562 - Сычев
+                $btrx->accomplices = array(1,562,724,6904);// Соисполнители
+                $btrx->auditors = array(668,6768);// Наблюдатели
+                $btrx->tags = array('Неисправность','PON', 'Заявка', 'Internet');// Теги задачи
+                $btrx->group_id = 16;// Группа "Неисправности"
+                $btrx->type = 'PON';
+                break;
+
+            default:
                 $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
                 $btrx->accomplices = array(1);// Соисполнители
                 $btrx->auditors = array(668,6768);// Наблюдатели
                 $btrx->tags = array('Неисправность','Ethernet', 'Заявка', 'Internet');// Теги задачи
                 $btrx->group_id = 16;// Группа "Неисправности"
+                $btrx->type = 'Eth';
                 $btrx->pid = 43;// Поле задачи в Биллинге
                 break;
         }
@@ -77,7 +87,49 @@ class BX24 {
         return implode(', ', $phonesLinksArray);
     }
 
-    public static function createTask($cid, $bx24Data, $bgb_result, $edgeCoreData) {
+    private static function getDescription($cid, $bx24Data, $contractData, $services) {
+        $phones = static::getPhoneLink($contractData->phone);
+        $switchLast = new stdClass();
+
+        for ($i = 1; $i < $services->count + 1; $i++) {
+            $tdLast = '';
+            if ($services->{$i}->type == 'Gray-IP') {
+                $switchLast = BGB::getLastWorker($services->{$i}->host)->fetch_object();
+                $edgeCoreData = EdgeCore::getData($services->{$i}->host, preg_replace('/\D+/', '', $services->{$i}->title));
+                $tdLast = "Замер: {$edgeCoreData->cableDiagResultTime} "
+                . "{$edgeCoreData->cableDiagResultStatusPairA->status} "
+                . "({$edgeCoreData->cableDiagResultDistancePairA}) | "
+                . "{$edgeCoreData->cableDiagResultStatusPairB->status} "
+                . "({$edgeCoreData->cableDiagResultDistancePairB})<br>"
+                . "Последние действия: {$switchLast->date} | {$switchLast->port} "
+                . "порт | {$switchLast->worker}";
+            }
+            $rowsServicesTable .= "<tr><td>".$services->{$i}->type . "</td><td>".
+                $services->{$i}->host . "</td><td>" . $services->{$i}->title .
+                "</td><td>$tdLast</td></tr>";
+        }
+
+        $patterns = array('/{CID}/', '/{PHONES}/', '/{ROW_SERVICES}/', '/{COMMENT}/');
+
+        $replacements = array($cid, $phones, $rowsServicesTable, $bx24Data['description']);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/BitrixTaskDescription.tpl"));
+    }
+
+    private static function getBtrxType($services) {
+        $btrxType = 'Gray-IP';
+
+        for ($i = 1; $i < $services->count + 1; $i++) {
+            if ($services->{$i}->type == 'GePON') {
+                $btrxType = 'GePON';
+            }
+        }
+
+        return $btrxType;
+    }
+
+    public static function createTask($cid, $bx24Data, $contractData, $services) {
         switch (get_current_user_id()) {
             case 27:
                 $task['fields']['CREATED_BY'] = 12;
@@ -100,8 +152,6 @@ class BX24 {
                 break;
         }
 
-        $btrx = static::getParams('faultEth');
-
         switch (intval($bx24Data['halfDay'])) {
             case 14:
                 $halfDay = 2;
@@ -122,13 +172,11 @@ class BX24 {
                 break;
         }
 
-        $cableTestInfo = "Замер кабеля на $edgeCoreData->cableDiagResultTime:<br>"
-                . "1 пара: ".$edgeCoreData->cableDiagResultStatusPairA->status." ($edgeCoreData->cableDiagResultDistancePairA). ".$edgeCoreData->cableDiagResultStatusPairA->hint."<br>"
-                . "2 пара: ".$edgeCoreData->cableDiagResultStatusPairB->status." ($edgeCoreData->cableDiagResultDistancePairB). ".$edgeCoreData->cableDiagResultStatusPairB->hint;
+        $btrxType = static::getBtrxType($services);
 
-        $phones = static::getPhoneLink($bgb_result->phone);
+        $btrx = static::getParams($btrxType);
 
-        $task['fields']['TITLE'] = "$halfDay | Eth | ".$bx24Data['type']." | ".$bx24Data['address'].$preCall;
+        $task['fields']['TITLE'] = "$halfDay | $btrx->type | ".$bx24Data['type']." | ".$bx24Data['address'].$preCall;
         $task['fields']['RESPONSIBLE_ID'] = $btrx->responsible_id;
         $task['fields']['ACCOMPLICES'] = $btrx->accomplices;
         $task['fields']['AUDITORS'] = $btrx->auditors;
@@ -136,7 +184,8 @@ class BX24 {
         $task['fields']['GROUP_ID'] = $btrx->group_id;
         $task['fields']['ALLOW_CHANGE_DEADLINE'] = 'Y';
         $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 4 hour'));
-        $task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>Коммутатор: $bgb_result->host<br>Порт: $bgb_result->port<br><br>$cableTestInfo<br><br>".$bx24Data['description'];
+        #$task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>$tableServices<br><br>".$bx24Data['description'];
+        $task['fields']['DESCRIPTION'] = static::getDescription($cid, $bx24Data, $contractData, $services);
         $task['fields']['START_DATE_PLAN'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00'));
         $task['fields']['END_DATE_PLAN'] = date('c',strtotime($task['fields']['START_DATE_PLAN'].'+ 3 hour'));    
 

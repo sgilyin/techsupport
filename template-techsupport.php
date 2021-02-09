@@ -34,53 +34,67 @@ switch ($inputRequestMethod){
 }
 
 if (!$inputRequestData['cid']){
-    echo HTML::getIdForm(false);
+    echo HTML::getSearchForm(false, $device);
 } else {
     $cid = $inputRequestData['cid'];
-    echo HTML::getIdForm($cid);
-    $bgb_result = BGB::getData($cid);
+    echo HTML::getSearchForm($cid, $device);
+    $contractData = BGB::getData($cid, 'contract')->fetch_object();
+    $contractServices = BGB::getData($cid, 'services');
 
-    switch ($bgb_result->type) {
-        case 'GePON':
-            echo '<p>Договор из группы PON</p>'.$htmlEmptyForm;
-            break;
+    $device = (preg_match('/Android|iPhone/', filter_input(INPUT_SERVER, 'HTTP_USER_AGENT'))) ? 'Mobile' : 'PC';
 
-        case 'Gray-IP':
-            if ($bgb_result->host && $bgb_result->port){
+    echo HTML::getContractInfo($contractData, $device);
+
+    $services = new stdClass();
+
+    while ($service = mysqli_fetch_object($contractServices)) {
+
+        switch ($service->type) {
+            case 'Gray-IP':
                 if ($inputRequestData['btnCableTest']){
-                    EdgeCore::cableTest($bgb_result->host, $bgb_result->port);
+                    EdgeCore::cableTest($service->host, preg_replace('/\D+/', '', $service->title));
                 }
 
                 if ($inputRequestData['btnShutdown']){
-                    EdgeCore::changeIfAdminStatus($bgb_result->host, $bgb_result->port, 2);
+                    EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 2);
                 }
 
                 if ($inputRequestData['btnNoShutdown']){
-                    EdgeCore::changeIfAdminStatus($bgb_result->host, $bgb_result->port, 1);
+                    EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 1);
                 }
 
-                $edgeCoreData = EdgeCore::getData($bgb_result->host, $bgb_result->port);
+                echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device);
+                break;
 
-                echo HTML::getContractInfo($bgb_result);
-                echo HTML::getSwitchInfo($bgb_result, $edgeCoreData);
-                echo HTML::getPortInfo($bgb_result, $edgeCoreData);
-                echo HTML::getCableTestInfo($edgeCoreData);
-                #echo HTML::getSwitchLog($bgb_result->host);
-                echo HTML::getBitrixForm($bgb_result);
-                if ($inputRequestData['bx']['address'] && $inputRequestData['bx']['type'] && $inputRequestData['bx']['halfDay'] && $inputRequestData['bx']['date']){
-                    $bx = BX24::createTask($inputRequestData['cid'], $inputRequestData['bx'], $bgb_result, $edgeCoreData);
-                    if ($bx->result->task->id){
-                        echo '<script language="javascript">alert("Задача в Битрикс создана")</script>';
-                    }
-                }
-            } else {
-                echo '<p>Договор не подключен</p>'.$htmlEmptyForm;
-            }
-            break;
+            case 'White-IP':
+                echo HTML::getWhiteSwitchInfo($service->host, $service->title, $device);
+                break;
 
-        default:
-            echo '<p>Такого обработчика пока нет :-) Вот как будет мне не лень, мы обязательно что-то придумаем ;-)</p>'.$htmlEmptyForm;
-            break;
+            case 'GePON':
+                echo HTML::getPonSwitchInfo($service->host, $service->title, $device);
+                break;
+
+            case 'Sector-Wireless':
+                echo HTML::getWirelessSwitchInfo($service->host, $service->title, $device);
+                break;
+
+            default:
+                echo '<p><mark>Обработчик отсутствует</mark></p>';
+                break;
+        }
+        #$rowsServicesTable .= "<tr><td>$service->type</td><td>$service->host</td><td>$service->title</td></tr>";
+        $i++;
+        $services->{$i} = $service;
+    }
+    $services->count = $i;
+
+    echo HTML::getBitrixForm($contractData, $device);
+
+    if ($inputRequestData['bx']['address'] && $inputRequestData['bx']['type'] && $inputRequestData['bx']['halfDay'] && $inputRequestData['bx']['date']){
+        $bx = BX24::createTask($inputRequestData['cid'], $inputRequestData['bx'], $contractData, $services);
+        if ($bx->result->task->id){
+            echo '<script language="javascript">alert("Задача в Битрикс создана")</script>';
+        }
     }
 }
 #get_footer();

@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * Copyright (C) 2021 Sergey Ilyin <developer@ilyins.ru>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,26 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-include_once 'config.php';
-
-spl_autoload_register(function ($class) {
-    switch ($class) {
-
-        default:
-            include __DIR__."/classes/$class.class.php";
-            break;
-    }
-});
-
-$inputRequestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
-
-switch ($inputRequestMethod){
-    case 'GET':
-        $inputRequestData = filter_input_array(INPUT_GET);
-        break;
-    case 'POST':
-        $inputRequestData = filter_input_array(INPUT_POST);
-        break;
+/**
+ * Description of MikroTik
+ *
+ * @author Sergey Ilyin <developer@ilyins.ru>
+ */
+class MikroTik {
+    //put your code here
 }
-
-echo 'LOG коммутатора ' . $inputRequestData['host'] . ':<br>' . rSysLog::getLog($inputRequestData['host']);

@@ -25,28 +25,23 @@
 class EdgeCore {
     public static function getData($host, $port) {
         $data = new stdClass();
-        $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY, '.1.3.6.1.2.1.1.3.0'));
+        $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.1.3.0'));
         $data->sysUpTime = static::timeticksConvert($sysUpTime);
-        $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.9.$port"));
+        $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.9.$port"));
         $data->ifLastChange = static::timeticksConvert(intval($sysUpTime)- intval($ifLastChange));
-        #$data->swPortNumber = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.1.3.1.7.1")));
-        #$data->dhcpSnoopBindingsIpAddress = preg_replace('/IpAddress: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.46.4.1.1.5"));
-        #$data->dhcpSnoopBindingsLeaseTime = preg_replace('/Gauge32: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.46.4.1.1.7"));
-        #$data->macs = preg_replace('/Hex-STRING: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.17.4.3.1.1"));
-        #$data->macPorts = preg_replace('/INTEGER: /m', '', snmp2_walk($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.17.4.3.1.2"));
-        $data->ifAdminStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.7.$port")));
-        $data->ifOperStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.8.$port")));
-        $data->portInUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.4.$port")))/100;
-        $data->portOutUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.7.$port")))/100;
-        $data->cableDiagResultTime = preg_replace('/STRING: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.11.$port"));
-        $data->cableDiagResultDistancePairA = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.6.$port")));
-        $data->cableDiagResultDistancePairB = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port")));
-        $data->cableDiagResultStatusPairA = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port"))));
-        $data->cableDiagResultStatusPairB = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port"))));
-        $data->portSpeedDpxStatus = static::portSpeedDpxStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.1.1.8.$port"))));
-        $dhcpSnoopBindingsTable = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1');
-        $macAddressTable = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.2.1.17.4.3.1.1');
-        $macPortTable = snmp2_real_walk($host, SNMP_COMMUNITY, '.1.3.6.1.2.1.17.4.3.1.2');
+        $data->ifAdminStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.7.$port")));
+        $data->ifOperStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.8.$port")));
+        $data->portInUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.4.$port")))/100;
+        $data->portOutUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.7.$port")))/100;
+        $data->cableDiagResultTime = preg_replace('/STRING: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.11.$port"));
+        $data->cableDiagResultDistancePairA = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.6.$port")));
+        $data->cableDiagResultDistancePairB = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port")));
+        $data->cableDiagResultStatusPairA = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port"))));
+        $data->cableDiagResultStatusPairB = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port"))));
+        $data->portSpeedDpxStatus = static::portSpeedDpxStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.1.1.8.$port"))));
+        $dhcpSnoopBindingsTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1');
+        $macAddressTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.1');
+        $macPortTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.2');
 
         $dhcpSnoopBindingsTableTotal = array();
         $dhcpSnoopBindingsTablePort = array();
@@ -86,17 +81,17 @@ class EdgeCore {
     }
 
     public static function cableTest($host, $port) {
-        snmp2_set($host, SNMP_COMMUNITY, ".1.3.6.1.4.1.259.6.10.94.1.2.3.1.0", "i", $port);
-        sleep(3);
+        snmp2_set($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.1.0", "i", $port);
+        sleep(4);
     }
 
     public static function changeIfAdminStatus($host, $port, $status) {
-        snmp2_set($host, SNMP_COMMUNITY, ".1.3.6.1.2.1.2.2.1.7.$port", "i", $status);
-        sleep(1);
+        snmp2_set($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.7.$port", "i", $status);
+        sleep(4);
     }
 
     private function cleanValue ($value) {
-        $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /');
+        $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /', '/STRING: /');
 
         return str_replace(' ', '-', preg_replace($patterns, '', $value));
     }
@@ -204,7 +199,7 @@ class EdgeCore {
                 $result->hint = 'Значение "unknown" означает, что замер произведен неудачно или кабель слишком короткий.';
                 break;
             case 8:
-                $result->status = 'impedanceMismatch';
+                $result->status = 'impedance Mismatch';
                 $result->hint = 'Значение "impedanceMismatch" означает, что кабели различного качества связаны друг с другом.';
                 break;
             case 9:
@@ -220,24 +215,5 @@ class EdgeCore {
                 break;
         }
         return $result;
-    }
-
-    public static function getLog($switch) {
-        $mysqli = new mysqli(RSYSLOG_HOST, RSYSLOG_USER, RSYSLOG_PASS, RSYSLOG_DB);
-        if (mysqli_connect_errno()) {
-            printf("Подключение к серверу MySQL невозможно. Код ошибки: %s\n", mysqli_connect_error());
-            exit;
-        }
-        $mysqli->query("set character_set_client='utf8'");
-        $mysqli->query("set character_set_results='utf8'");
-        $mysqli->query("set collation_connection='utf8_general_ci'");
-        $result = $mysqli->query("SELECT devicereportedtime, message FROM SystemEvents WHERE fromhost = '$switch' ORDER BY id DESC LIMIT 100");
-        $tableRows = '';
-        for($i = 0; $i < $result->num_rows; $i++){
-            $rSysLog = $result->fetch_object();
-            $tableRows = $tableRows."| $rSysLog->devicereportedtime | $rSysLog->message<br>";
-        }
-
-        return $tableRows;
     }
 }

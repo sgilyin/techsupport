@@ -23,56 +23,47 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class HTML {
-    public static function getIdForm($cid) {
-        $html = "<div class='entry'><div class='woo-sc-box normal rounded full'>
-            <form method='post'>
-            <label for='cid'>ID договора в Биллинге</label>
-            <input type='text' name='cid' id='cid' value='$cid'>
-            <input type='submit' name='Submit' value='Собрать данные'>
-            <a href='https://fialka.tv/tech'> Сбросить</a>
-            </div></div>";
+    public static function getSearchForm($cid, $device) {
+        $patterns = array('/{CID}/');
 
-        return $html;
+        $replacements = array($cid);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}SearchForm.tpl"));
     }
 
-    public static function getContractInfo($bgb_result) {
-        $status = ($bgb_result->status == 'Активен') ? $bgb_result->status : "<font color='red'><b>$bgb_result->status</b></font>";
-        $html = "<div class='entry'><div class='woo-sc-box normal rounded full'>
-            Абонент: $bgb_result->abonent<br>
-            Адрес: $bgb_result->address<br>
-            Статус договора: $status<br>
-            Тарифный план: $bgb_result->tariff<br>
-            Баланс: $bgb_result->balance (Дней до блокировки: ~ ".static::getCountDays($bgb_result->tariff, $bgb_result->balance).")<br>
-            Комментарий из договора: $bgb_result->comment
-            </div></div>";
+    public static function getContractInfo($contractData, $device) {
+        $status = ($contractData->status == 'Активен') ? $contractData->status :
+                "<font color='red'><b>$contractData->status</b></font>";
 
-        return $html;
+        $blockDays = static::getCountDays($contractData->tariff, $contractData->balance);
+
+        $patterns = array('/{ABONENT}/', '/{ADDRESS}/', '/{STATUS}/',
+            '/{TARIFF}/', '/{BALANCE}/', '/{BLOCK_DAYS}/', '/{COMMENT}/');
+
+        $replacements = array($contractData->abonent, $contractData->address,
+            $status, $contractData->tariff, $contractData->balance, $blockDays,
+            $contractData->comment);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}ContractInfo.tpl"));
     }
 
-    public static function getSwitchInfo($bgb_result, $edgeCoreData) {
-        $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Коммутатор: $bgb_result->host Uptime: $edgeCoreData->sysUpTime    <a class='button' target='_blank' href='https://fialka.tv/techsupport/get-log.php?host=$bgb_result->host'>LOG</a>
-            </div></div>";
+    public static function getGraySwitchInfo($host, $port, $device) {
+        $edgeCoreData = EdgeCore::getData($host, $port);
+        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
+        $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : '';
+        $switchLast = BGB::getLastWorker($host)->fetch_object();
 
-        return $html;
-    }
+        switch ($edgeCoreData->ifAdminStatus) {
+            case 2:
+                $btnChangeIfAdminStatus = "<input type='submit' name='btnNoShutdown' value='No Shu'>";
+                break;
 
-    public static function getPortInfo($bgb_result, $edgeCoreData) {
-        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Есть' : '<font color="red"><b>Нет</b></font>';
-        $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Порт потушен!</b></font>' : '';
-
-        $htmlTableHeader = "
-<table>
-  <!-- <caption>DHCP Snooping Binding</caption> -->
-  <tr>
-    <td>VLAN</td>
-    <td>IP Address</td>
-    <td>Lease</td>
-    <td>MAC Address</td>
-    <td>MAC Vendor</td>
-  </tr>";
-
-        $htmlTableFooter = "</table>";
+            default:
+                $btnChangeIfAdminStatus = "<input type='submit' name='btnShutdown' value='Shu'>";
+                break;
+        }
 
         if (isset($edgeCoreData->dhcpSnoopBinPort)) {
             for ($i = 0; $i < count($edgeCoreData->dhcpSnoopBinPort); $i++) {
@@ -84,133 +75,63 @@ class HTML {
             }
         }
 
-        switch ($edgeCoreData->ifAdminStatus) {
-            case 2:
-                $btnChangeIfAdminStatus = "<input type='submit' name='btnNoShutdown' value='Поднять порт'>";
-                break;
+        $patterns = array('/{HOST}/', '/{BTN_CHANGE_IF_ADMIN_STATUS}/',
+            '/{SYS_UP_TIME}/', '/{PORT}/', '/{IF_LAST_CHANGE}/', '/{IF_OPER_STATUS}/',
+            '/{IF_ADMIN_STATUS}/', '/{PORT_SPEED_DPX_STATUS}/', '/{PORT_OUT_UTIL}/',
+            '/{PORT_IN_UTIL}/', '/{CABLE_DIAG_RESULT_TIME}/', '/{CABLE_A_STATUS}/',
+            '/{CABLE_A_DISTANCE}/', '/{CABLE_B_STATUS}/', '/{CABLE_B_DISTANCE}/',
+            '/{ROWS}/', '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/', '/{SWITCH_LAST_WORKER}/');
 
-            default:
-                $btnChangeIfAdminStatus = "<input type='submit' name='btnShutdown' value='Потушить порт'>";
-                break;
-        }
+        $replacements = array($host, $btnChangeIfAdminStatus, $edgeCoreData->sysUpTime,
+            $port, $edgeCoreData->ifLastChange, $ifOperStatus, $ifAdminStatus,
+            $edgeCoreData->portSpeedDpxStatus, $edgeCoreData->portOutUtil,
+            $edgeCoreData->portInUtil, $edgeCoreData->cableDiagResultTime,
+            $edgeCoreData->cableDiagResultStatusPairA->status,
+            $edgeCoreData->cableDiagResultDistancePairA,
+            $edgeCoreData->cableDiagResultStatusPairB->status,
+            $edgeCoreData->cableDiagResultDistancePairB, $rows, $switchLast->date,
+            $switchLast->port, $switchLast->worker);
 
-        /*
-        for ($i=0; $i<count($edgeCoreData->dhcpSnoopBindingsIpAddress); $i++){
-            if (intval($bgb_result->port)<25 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))<5){
-                if (intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), 1, -1)) == $bgb_result->port){
-                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.gmdate("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
-                }
-            }
-            if (intval($bgb_result->port)>24 && intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), -1))>4){
-                if (intval(substr(strrchr($edgeCoreData->dhcpSnoopBindingsIpAddress[$i], "."), 1, -1))+24 == $bgb_result->port){
-                    $ip = $ip.$edgeCoreData->dhcpSnoopBindingsIpAddress[$i].' ('.gmdate("H:i:s", $edgeCoreData->dhcpSnoopBindingsLeaseTime[$i]).')<br>';
-                }
-            }
-        }
-
-        for ($i=0; $i<count($edgeCoreData->macs); $i++){
-            if ($edgeCoreData->macPorts[$i] == $bgb_result->port){
-                $macDashed = str_replace(' ', '-', substr($edgeCoreData->macs[$i], 0, -1));
-                $mac = $mac."$macDashed (". static::getMacVendor($macDashed).')<br>';
-            }
-        }
-*/
-        $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Порт: $bgb_result->port Актив: $ifOperStatus$ifAdminStatus ($edgeCoreData->portSpeedDpxStatus; $edgeCoreData->ifLastChange)
-            <form method='post'>
-            $btnChangeIfAdminStatus
-            <br>
-            Download: $edgeCoreData->portOutUtil Mbps Upload: $edgeCoreData->portInUtil Mbps (300 sec.)<br>
-            $htmlTableHeader$rows$htmlTableFooter
-            </div></div>";
-
-        return $html;
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}GrayIPInfo.tpl"));
     }
 
-    public static function getCableTestInfo($edgeCoreData) {
-        $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            Замер кабеля на $edgeCoreData->cableDiagResultTime:<br>
-            1 пара: ".$edgeCoreData->cableDiagResultStatusPairA->status." ($edgeCoreData->cableDiagResultDistancePairA). ".$edgeCoreData->cableDiagResultStatusPairA->hint."<br>
-            2 пара: ".$edgeCoreData->cableDiagResultStatusPairB->status." ($edgeCoreData->cableDiagResultDistancePairB). ".$edgeCoreData->cableDiagResultStatusPairB->hint."<br>
-            <form method='post'>
-            <input type='submit' name='btnCableTest' value='Выполнить замер'>
-            </div></div>";
+    public static function getWhiteSwitchInfo($host, $ip, $device) {
+        $patterns = array('/{HOST}/', '/{IP}/');
 
-        return $html;
+        $replacements = array($host, $ip);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}WhiteIPInfo.tpl"));
     }
 
-    public static function getSwitchLog($switch) {
-        $tableRows = EdgeCore::getLog($switch);
-        $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            LOG коммутатора $switch:<br>
-            $tableRows
-            </div></div>";
+    public static function getPonSwitchInfo($host, $portMac, $device) {
+        $BDComData = BDCom::getData($host, $portMac);
 
-        return $html;
+        $patterns = array('/{HOST}/', '/{PORT_MAC}/');
+
+        $replacements = array($host, $portMac);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}PONInfo.tpl"));
     }
-    public static function getBitrixForm($bgb_result) {
-        $html = "<div class='entry'><div class='woo-sc-box normal  rounded full'>
-            <form method='post'>
-            <input type='hidden' name='bx[address]' value='$bgb_result->address'>
-            <input type='hidden' name='bx[phone]' value='$bgb_result->phone'>
-            <table>
-            <tbody>
-                <tr>
-                    <td>Тип задачи</td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type='radio' name='bx[type]' value='ЗК' id='bxTypeZK'>
-                        <label for='bxTypeZK'>ЗК</label>
-                        <input type='radio' name='bx[type]' value='СКНП' id='bxTypeSKNP'>
-                        <label for='bxTypeSKNP'>СКНП</label>
-                        <input type='radio' name='bx[type]' value='Speedtest' id='bxTypeSpeedtest'>
-                        <label for='bxTypeSpeedtest'>Speedtest</label>
-                        <input type='radio' name='bx[type]' value='Роутер' id='bxTypeRouter'>
-                        <label for='bxTypeRouter'>Настройка роутера</label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Половина дня</td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type='radio' name='bx[halfDay]' value='9' id='bxHalfDay1'>
-                        <label for='bxHalfDay1'>1</label>
-                        <input type='radio' name='bx[halfDay]' value='14' id='bxHalfDay2'>
-                        <label for='bxHalfDay2'>2</label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Дата</td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type='date' name='bx[date]'>
-                        <label for='preCall'>Предварительный звонок</label>
-                        <input type='checkbox' name='bx[preCall]' id='preCall'>
-                        <input type='text' name='bx[minPreCall]' id='minPreCall'>
-                        <label for='minPreCall'>минут</label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for='description'>Дополнительный комментарий, если необходим</label>
-                        <input type='text' name='bx[description]' id='description'>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type='submit' name='createBxTask' value='Создать задачу в Битрикс'>
-                        <input type='reset'>
-                    </td>
-                </tr>
-            </tbody>
-            </table>
-            </form>
-            </div></div>";
 
-        return $html;
+    public static function getWirelessSwitchInfo($host, $ip, $device) {
+        $patterns = array('/{HOST}/', '/{IP}/');
+
+        $replacements = array($host, $ip);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}WirelessInfo.tpl"));
+    }
+
+    public static function getBitrixForm($contractData, $device) {
+        $patterns = array('/{ADDRESS}/', '/{PHONE}/');
+
+        $replacements = array($contractData->address, $contractData->phone);
+
+        return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
+                "/../templates/{$device}BitrixForm.tpl"));
     }
 
     private function getCountDays($tariff, $balance) {
@@ -232,6 +153,7 @@ class HTML {
         $post['a'] = 'act';
         $post['mac'] = $mac;
         $response = cURL::executeRequest($url, $post, false);
+        $vendor = array();
         preg_match('/Имя компании:.*\n\t{5}<td>.*<\/td>/m', $response, $vendor);
 
         return substr(strrchr($vendor[0], ":"), 16);
