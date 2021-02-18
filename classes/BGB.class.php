@@ -74,7 +74,7 @@ FROM inet_serv_15 t_is15
 LEFT JOIN inet_serv_type_15 t_ist15 ON t_is15.typeId=t_ist15.id
 LEFT JOIN inet_device_tree_15 t_idt15 ON t_is15.deviceId=t_idt15.id
 LEFT JOIN inv_device_15 t_id15 ON t_idt15.invDeviceId=t_id15.id
-WHERE t_is15.contractId=$cid
+WHERE t_is15.dateTo IS NULL AND t_is15.contractId=$cid
 ";
                 break;
 
