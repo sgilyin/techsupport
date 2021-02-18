@@ -107,10 +107,31 @@ class HTML {
 
     public static function getPonSwitchInfo($host, $portMac, $device) {
         $BDComData = BDCom::getData($host, $portMac);
+        $ifOperStatus = ($BDComData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
+        $ifAdminStatus = ($BDComData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : 'Up';
+        $service = static::parse($portMac);
+        $mapAddress = BGB::getSwitchAddress($host);
+        $grachLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port= EPON0/{$service->port}:{$service->llid}";
 
-        $patterns = array('/{HOST}/', '/{PORT_MAC}/');
+        if (isset($BDComData->nmsBindingsEntry)) {
+            for ($i = 0; $i < count($BDComData->nmsBindingsEntry); $i++) {
+                $rows .= "<tr><td>" . $BDComData->nmsBindingsEntry[$i]['vlan'] . "</td>
+                    <td>" . $BDComData->nmsBindingsEntry[$i]['ip'] . "</td>
+                    <td>" . gmdate("H:i:s", $BDComData->nmsBindingsEntry[$i]['lease']) . "</td>
+                    <td>" . $BDComData->nmsBindingsEntry[$i]['mac'] . "</td>
+                    <td>" . static::getMacVendor($BDComData->nmsBindingsEntry[$i]['mac']) . "</td></tr>";
+            }
+        }
 
-        $replacements = array($host, $portMac);
+        $patterns = array('/{HOST}/', '/{PORT_MAC}/', '/{SYS_UP_TIME}/', '/{IF_ADMIN_STATUS}/',
+            '/{IF_OPER_STATUS}/', '/{OLT_RX_POWER}/', '/{ONU_STATUS}/', '/{IF_LAST_CHANGE}/',
+            '/{ONU_DEREG_REASON}/', '/{ONU_RX_POWER}/', '/{ONU_TX_POWER}/', '/{ONU_CTV_POWER}/',
+            '/{ROWS}/', '/{GRAPH_LINK}/');
+
+        $replacements = array($host, $portMac, $BDComData->sysUpTime, $ifAdminStatus,
+            $ifOperStatus, $BDComData->oltModuleRxPower, $BDComData->onuStatus,
+            $BDComData->ifLastChange, $BDComData->onuDeregReason, $BDComData->onuModuleRxPower,
+            $BDComData->onuModuleTxPower, $BDComData->onuCtvRxPower, $rows, $grachLink);
 
         return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
                 "/../templates/{$device}PONInfo.tpl"));
@@ -157,5 +178,16 @@ class HTML {
         preg_match('/Имя компании:.*\n\t{5}<td>.*<\/td>/m', $response, $vendor);
 
         return substr(strrchr($vendor[0], ":"), 16);
+    }
+
+    private function parse($serviceTitle) {
+        if (preg_match('/\/([1-4])\:(\d*)\(([0-9,A-F,a-f]{12})\)/', $serviceTitle, $matches)) {
+            $service = new stdClass;
+            $service->port = $matches[1];
+            $service->llid = $matches[2];
+            $service->mac = $matches[3];
+
+            return $service;
+        }
     }
 }

@@ -104,6 +104,13 @@ class BX24 {
                 . "Последние действия: {$switchLast->date} | {$switchLast->port} "
                 . "порт | {$switchLast->worker}";
             }
+            if ($services->{$i}->type == 'GePON') {
+                $BDComData = BDCom::getData($services->{$i}->host, $services->{$i}->title);
+                $tdLast = "OLT RX Power: {$BDComData->oltModuleRxPower} DBm<br>"
+                    . "ONU RX Power: {$BDComData->onuModuleRxPower} DBm<br>"
+                    . "ONU TX Power: {$BDComData->onuModuleTxPower} DBm<br>"
+                    . "CTV Power: {$BDComData->onuCtvRxPower} DBm";
+            }
             $rowsServicesTable .= "<tr><td>".$services->{$i}->type . "</td><td>".
                 $services->{$i}->host . "</td><td>" . $services->{$i}->title .
                 "</td><td>$tdLast</td></tr>";

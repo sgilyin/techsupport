@@ -84,4 +84,18 @@ WHERE t_is15.contractId=$cid
 
         return static::sql($query);
     }
+
+    public function getSwitchAddress($ip){
+        $query = "
+SELECT t_eaa.value address
+FROM inv_device_15 t_id15
+LEFT JOIN entity_attr_address t_eaa ON (t_id15.entityId=t_eaa.entityId)
+WHERE t_id15.host='$ip'
+ORDER BY address DESC LIMIT 1
+";
+
+        $address = preg_replace("/^(\d{0,6})(, г\. Кумертау, )(.*)/", "$3", static::sql($query)->fetch_object()->address);
+
+        return $address;
+    }
 }
