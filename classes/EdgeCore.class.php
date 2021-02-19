@@ -23,6 +23,12 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class EdgeCore {
+    /**
+     * Get data from switch via SNMP
+     * @param string $host
+     * @param string $port
+     * @return \stdClass
+     */
     public static function getData($host, $port) {
         $data = new stdClass();
         $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.1.3.0'));
@@ -80,22 +86,43 @@ class EdgeCore {
         return $data;
     }
 
+    /**
+     * Make cable test on switch for port
+     * @param string $host
+     * @param string $port
+     */
     public static function cableTest($host, $port) {
         snmp2_set($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.1.0", "i", $port);
         sleep(4);
     }
 
+    /**
+     * Change ifAdminStatus on switch for port
+     * @param string $host
+     * @param string $port
+     * @param string $status
+     */
     public static function changeIfAdminStatus($host, $port, $status) {
         snmp2_set($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.7.$port", "i", $status);
         sleep(4);
     }
 
+    /**
+     * Remove service information from value
+     * @param string $value
+     * @return string
+     */
     private function cleanValue ($value) {
         $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /', '/STRING: /');
 
         return str_replace(' ', '-', preg_replace($patterns, '', $value));
     }
 
+    /**
+     * Get text OID Name
+     * @param integer $oidId
+     * @return string
+     */
     private function oidName ($oidId) {
         switch ($oidId) {
             case 3:
@@ -118,6 +145,11 @@ class EdgeCore {
         return $oidName;
     }
 
+    /**
+     * Convert timeticks to string
+     * @param string $timeticks
+     * @return string
+     */
     private function timeticksConvert($timeticks){
         $lntSecs = intval($timeticks / 100);
 	$intDays = intval($lntSecs / 86400);
@@ -131,6 +163,11 @@ class EdgeCore {
 	return "$intDays days, $strHours:$strMinutes:$strSeconds"; 
     }
 
+    /**
+     * Get text for port speed and duplex
+     * @param integer $param
+     * @return string
+     */
     private function portSpeedDpxStatus($param) {
         switch ($param) {
             case 1:
@@ -167,6 +204,11 @@ class EdgeCore {
         return $status;
     }
 
+    /**
+     * Get text for cable diagnostic
+     * @param integer $param
+     * @return \stdClass
+     */
     private function cableDiagResultStatus($param) {
         $result = new stdClass();
         switch ($param) {

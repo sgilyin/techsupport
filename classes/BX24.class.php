@@ -25,11 +25,10 @@
 
 class BX24 {
     /**
-     * Execute method on Bitrix24
-     *.
-     * @param String $bx24Method
-     * @param Array $bx24Data
-     * @return json
+     * Exexute request to B24
+     * @param string $bx24Method
+     * @param array $bx24Data
+     * @return string
      */
     private function callMethod($bx24Method, $bx24Data) {
 
@@ -40,10 +39,9 @@ class BX24 {
     }
 
     /**
-     * Get params for task in Bitrix24
-     *.
-     * @param String $type
-     * @return Object
+     * Generate params for B24 task
+     * @param string $btrxType
+     * @return \stdClass
      */
     private function getParams($btrxType) {
         $btrx = new stdClass();
@@ -72,10 +70,9 @@ class BX24 {
     }
 
     /**
-     * Get phone link for task in Bitrix24
-     * 
-     * @param String $phonesString
-     * @return String
+     * Generate phone link for B24 task
+     * @param string $phonesString
+     * @return string
      */
     private function getPhoneLink($phonesString) {
         $phonesArray = preg_split("/[ ,;.]/", preg_replace('/[^0-9, ]/', '', $phonesString));
@@ -87,6 +84,14 @@ class BX24 {
         return implode(', ', $phonesLinksArray);
     }
 
+    /**
+     * Get description for BX24 task
+     * @param string $cid
+     * @param array $bx24Data
+     * @param stdObject $contractData
+     * @param stdObject $services
+     * @return string
+     */
     private static function getDescription($cid, $bx24Data, $contractData, $services) {
         $phones = static::getPhoneLink($contractData->phone);
         $switchLast = new stdClass();
@@ -124,6 +129,11 @@ class BX24 {
                 "/../templates/BitrixTaskDescription.tpl"));
     }
 
+    /**
+     * Get type of task for BX24
+     * @param stdObject $services
+     * @return string
+     */
     private static function getBtrxType($services) {
         $btrxType = 'Gray-IP';
 
@@ -136,6 +146,14 @@ class BX24 {
         return $btrxType;
     }
 
+    /**
+     * Create BX24 task
+     * @param string $cid
+     * @param array $bx24Data
+     * @param stdObject $contractData
+     * @param stdObject $services
+     * @return json
+     */
     public static function createTask($cid, $bx24Data, $contractData, $services) {
         switch (get_current_user_id()) {
             case 27:

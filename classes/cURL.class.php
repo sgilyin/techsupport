@@ -26,11 +26,10 @@ class cURL {
 
     /**
      * Execute request to some server
-     * 
      * @param string $url
      * @param array $post
      * @param array $headers
-     * @return response
+     * @return mixed
      */
     public static function executeRequest($url,$post,$headers) {
 

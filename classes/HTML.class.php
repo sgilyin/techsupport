@@ -23,6 +23,12 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class HTML {
+    /**
+     * Get search form for techsupport
+     * @param string $cid
+     * @param string $device
+     * @return string
+     */
     public static function getSearchForm($cid, $device) {
         $patterns = array('/{CID}/');
 
@@ -32,6 +38,12 @@ class HTML {
                 "/../templates/{$device}SearchForm.tpl"));
     }
 
+    /**
+     * Get block of contract information
+     * @param stdObject $contractData
+     * @param string $device
+     * @return string
+     */
     public static function getContractInfo($contractData, $device) {
         $status = ($contractData->status == 'Активен') ? $contractData->status :
                 "<font color='red'><b>$contractData->status</b></font>";
@@ -49,6 +61,13 @@ class HTML {
                 "/../templates/{$device}ContractInfo.tpl"));
     }
 
+    /**
+     * Get block for gray ip information
+     * @param string $host
+     * @param string $port
+     * @param string $device
+     * @return string
+     */
     public static function getGraySwitchInfo($host, $port, $device) {
         $edgeCoreData = EdgeCore::getData($host, $port);
         $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
@@ -96,6 +115,13 @@ class HTML {
                 "/../templates/{$device}GrayIPInfo.tpl"));
     }
 
+    /**
+     * Get block for white ip information
+     * @param string $host
+     * @param string $ip
+     * @param string $device
+     * @return string
+     */
     public static function getWhiteSwitchInfo($host, $ip, $device) {
         $patterns = array('/{HOST}/', '/{IP}/');
 
@@ -105,6 +131,13 @@ class HTML {
                 "/../templates/{$device}WhiteIPInfo.tpl"));
     }
 
+    /**
+     * Get block for PON information
+     * @param string $host
+     * @param string $portMac
+     * @param string $device
+     * @return string
+     */
     public static function getPonSwitchInfo($host, $portMac, $device) {
         $BDComData = BDCom::getData($host, $portMac);
         $ifOperStatus = ($BDComData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
@@ -137,6 +170,13 @@ class HTML {
                 "/../templates/{$device}PONInfo.tpl"));
     }
 
+    /**
+     * Get block for wireless information
+     * @param string $host
+     * @param string $ip
+     * @param string $device
+     * @return string
+     */
     public static function getWirelessSwitchInfo($host, $ip, $device) {
         $patterns = array('/{HOST}/', '/{IP}/');
 
@@ -146,6 +186,12 @@ class HTML {
                 "/../templates/{$device}WirelessInfo.tpl"));
     }
 
+    /**
+     * Get form for creating BX24 task
+     * @param stdObject $contractData
+     * @param string $device
+     * @return string
+     */
     public static function getBitrixForm($contractData, $device) {
         $patterns = array('/{ADDRESS}/', '/{PHONE}/');
 
@@ -155,10 +201,22 @@ class HTML {
                 "/../templates/{$device}BitrixForm.tpl"));
     }
 
+    /**
+     * Get count days to deactivate contract
+     * @param string $tariff
+     * @param string $balance
+     * @return floor
+     */
     private function getCountDays($tariff, $balance) {
         switch ($tariff) {
             case '2018 Активный (25М/300Р) - Архив 2018':
                 $cost = 250;
+                break;
+            case '2018 GePON 100 (100М+ТВ/650Р)':
+                $cost = 650;
+                break;
+            case '2018 GePON 100 (100М/550Р)':
+                $cost = 550;
                 break;
 
             default:
@@ -169,6 +227,11 @@ class HTML {
         return floor($balance/($cost/intval(date("t"))));
     }
 
+    /**
+     * Get vendor at the MAC address
+     * @param string $mac
+     * @return string
+     */
     private function getMacVendor($mac) {
         $url = 'https://2ip.ua/ru/services/information-service/mac-find';
         $post['a'] = 'act';
@@ -180,6 +243,11 @@ class HTML {
         return substr(strrchr($vendor[0], ":"), 16);
     }
 
+    /**
+     * Parse service title
+     * @param string $serviceTitle
+     * @return \stdClass
+     */
     private function parse($serviceTitle) {
         if (preg_match('/\/([1-4])\:(\d*)\(([0-9,A-F,a-f]{12})\)/', $serviceTitle, $matches)) {
             $service = new stdClass;

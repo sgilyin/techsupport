@@ -23,6 +23,11 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class BGB {
+    /**
+     * Execute SQL request to BGB
+     * @param string $query
+     * @return mixed
+     */
     static function sql($query) {
         $mysqli = new mysqli(BGB_HOST, BGB_USER, BGB_PASS, BGB_DB);
         if (mysqli_connect_errno()) {
@@ -36,6 +41,11 @@ class BGB {
         return $mysqli->query($query);
     }
 
+    /**
+     * Get last worker on switch
+     * @param string $host
+     * @return mixed
+     */
     public static function getLastWorker($host) {
         $query = "
 SELECT  t_is15.dateFrom date, t_is15.interfaceId port, t_is15.comment worker
@@ -50,6 +60,12 @@ LIMIT 1
         return static::sql($query);
     }
 
+    /**
+     * Get data from BGB about contract or services
+     * @param string $cid
+     * @param string $requestType
+     * @return mixed
+     */
     public static function getData($cid, $requestType) {
         switch ($requestType) {
             case 'contract':
@@ -85,6 +101,11 @@ WHERE (t_is15.dateTo IS NULL OR t_is15.dateTo>=CURDATE()) AND t_is15.contractId=
         return static::sql($query);
     }
 
+    /**
+     * Get switch post address on map
+     * @param string $ip
+     * @return string
+     */
     public function getSwitchAddress($ip){
         $query = "
 SELECT t_eaa.value address

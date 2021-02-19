@@ -23,6 +23,12 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class BDCom {
+    /**
+     * Get data from switch via SNMP
+     * @param string $serviceHost
+     * @param string $serviceTitle
+     * @return \stdClass
+     */
     public static function getData($serviceHost, $serviceTitle) {
         $service = static::parse($serviceTitle);
         $service->host = $serviceHost;
@@ -46,6 +52,13 @@ class BDCom {
         return $data;
     }
 
+    /**
+     * Get DHCP Snooping Table from switch via SNMP
+     * @param string $host
+     * @param integer $port
+     * @param integer $llid
+     * @return array
+     */
     private function getDhcpSnooping($host, $port, $llid) {
         $SNMP = new SNMP(1, $host, SNMP_COMMUNITY_BDCOM);
         $SNMP->oid_increasing_check = false;
@@ -94,12 +107,22 @@ class BDCom {
         return $result;
     }
 
+    /**
+     * Remove service information from value
+     * @param string $value
+     * @return string
+     */
     private function cleanValue ($value) {
         $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /', '/STRING: /');
 
         return preg_replace($patterns, '', $value);
     }
 
+    /**
+     * Get ID ONU on switch
+     * @param stdClass $service
+     * @return integer
+     */
     private function getOnuId($service) {
         $ifTable = snmp2_real_walk($service->host, SNMP_COMMUNITY_BDCOM, '.1.3.6.1.2.1.2.2.1.2');
         $id = array_search("STRING: \"EPON0/{$service->port}:{$service->llid}\"", $ifTable);
@@ -107,6 +130,11 @@ class BDCom {
         return intval(preg_replace('/iso.3.6.1.2.1.2.2.1.2./', '', $id));
     }
 
+    /**
+     * Get ID ONU on switch for MAC address table
+     * @param stdClass $service
+     * @return string
+     */
     private function getOnuStatId($service) {
         $onuMacAddressIndex = snmp2_real_walk($service->host, SNMP_COMMUNITY_BDCOM, '.1.3.6.1.4.1.3320.101.11.1.1.3');
         $macSpaced = preg_replace('/([0-9,A-F,a-f]{2})([0-9,A-F,a-f]{2})'
@@ -117,6 +145,11 @@ class BDCom {
         return $id;
     }
 
+    /**
+     * Get text status of ONU
+     * @param integer $status
+     * @return string
+     */
     private function getOnuStatus($status) {
         switch ($status) {
             case 0:
@@ -146,6 +179,11 @@ class BDCom {
         return $onuStatus;
     }
 
+    /**
+     * Get text dereg reason of ONU
+     * @param integer $reason
+     * @return string
+     */
     private function getOnuDeregReason($reason) {
         switch ($reason) {
             case 2:
@@ -181,6 +219,11 @@ class BDCom {
         return $onuDeregReason;
     }
 
+    /**
+     * Get parts of the service
+     * @param string $serviceTitle
+     * @return \stdClass
+     */
     private function parse($serviceTitle) {
         if (preg_match('/\/([1-4])\:(\d*)\(([0-9,A-F,a-f]{12})\)/', $serviceTitle, $matches)) {
             $service = new stdClass;
@@ -192,6 +235,11 @@ class BDCom {
         }
     }
 
+    /**
+     * Convert timeticks to text
+     * @param string $timeticks
+     * @return string
+     */
     private function timeticksConvert($timeticks){
         $lntSecs = intval($timeticks / 100);
 	$intDays = intval($lntSecs / 86400);

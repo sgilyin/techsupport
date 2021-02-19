@@ -23,6 +23,11 @@
  * @author Sergey Ilyin <developer@ilyins.ru>
  */
 class rSysLog {
+    /**
+     * Get LOG of switch from rsyslog
+     * @param string $switch
+     * @return string
+     */
     public static function getLog($switch) {
         $mysqli = new mysqli(RSYSLOG_HOST, RSYSLOG_USER, RSYSLOG_PASS, RSYSLOG_DB);
         if (mysqli_connect_errno()) {

@@ -82,7 +82,6 @@ if (!$inputRequestData['cid']){
                 echo '<p><mark>Обработчик отсутствует</mark></p>';
                 break;
         }
-        #$rowsServicesTable .= "<tr><td>$service->type</td><td>$service->host</td><td>$service->title</td></tr>";
         $i++;
         $services->{$i} = $service;
     }
