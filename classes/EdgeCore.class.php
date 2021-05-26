@@ -30,25 +30,39 @@ class EdgeCore {
      * @return \stdClass
      */
     public static function getData($host, $port) {
+        $OIDs = array(
+            'sysUpTime' => 'iso.3.6.1.2.1.1.3.0',
+            'ifAdminStatus' => "iso.3.6.1.2.1.2.2.1.7.$port",
+            'ifOperStatus' => "iso.3.6.1.2.1.2.2.1.8.$port",
+            'ifLastChange' => "iso.3.6.1.2.1.2.2.1.9.$port",
+            'portInUtil' => "iso.3.6.1.4.1.259.6.10.94.1.2.6.1.4.$port",
+            'portOutUtil' => "iso.3.6.1.4.1.259.6.10.94.1.2.6.1.7.$port",
+            'cableDiagResultTime' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.11.$port",
+            'cableDiagResultDistancePairA' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.6.$port",
+            'cableDiagResultDistancePairB' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port",
+            'cableDiagResultStatusPairA' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port",
+            'cableDiagResultStatusPairB' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port",
+            'portSpeedDpxStatus' => "iso.3.6.1.4.1.259.6.10.94.1.2.1.1.8.$port"
+        );
+        $SNMPData = snmp2_get($host, SNMP_COMMUNITY_EDGECORE, $OIDs);
         $data = new stdClass();
-        $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.1.3.0'));
-        $data->sysUpTime = static::timeticksConvert($sysUpTime);
-        $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.9.$port"));
-        $data->ifLastChange = static::timeticksConvert(intval($sysUpTime)- intval($ifLastChange));
-        $data->ifAdminStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.7.$port")));
-        $data->ifOperStatus = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.2.1.2.2.1.8.$port")));
-        $data->portInUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.4.$port")))/100;
-        $data->portOutUtil = floatval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.6.1.7.$port")))/100;
-        $data->cableDiagResultTime = preg_replace('/STRING: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.11.$port"));
-        $data->cableDiagResultDistancePairA = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.6.$port")));
-        $data->cableDiagResultDistancePairB = intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.7.$port")));
-        $data->cableDiagResultStatusPairA = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port"))));
-        $data->cableDiagResultStatusPairB = static::cableDiagResultStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port"))));
-        $data->portSpeedDpxStatus = static::portSpeedDpxStatus(intval(preg_replace('/INTEGER: /m', '', snmp2_get($host, SNMP_COMMUNITY_EDGECORE, ".1.3.6.1.4.1.259.6.10.94.1.2.1.1.8.$port"))));
-        $dhcpSnoopBindingsTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1');
-        $macAddressTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.1');
-        $macPortTable = snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.2');
-
+        $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", $SNMPData[$OIDs['sysUpTime']]);
+        $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", $SNMPData[$OIDs['ifLastChange']]);
+        $data->sysUpTime = ($SNMPData) ? static::timeticksConvert($sysUpTime) : '-';
+        $data->ifLastChange = ($SNMPData) ? static::timeticksConvert(intval($sysUpTime)- intval($ifLastChange)) : '-';
+        $data->ifAdminStatus = ($SNMPData) ? intval(static::cleanValue($SNMPData[$OIDs['ifAdminStatus']])) : '-';
+        $data->ifOperStatus = ($SNMPData) ? intval(static::cleanValue($SNMPData[$OIDs['ifOperStatus']])) : '-';
+        $data->portInUtil = ($SNMPData) ? floatval(static::cleanValue($SNMPData[$OIDs['portInUtil']]))/100 : '-';
+        $data->portOutUtil = ($SNMPData) ? floatval(static::cleanValue($SNMPData[$OIDs['portOutUtil']]))/100 : '-';
+        $data->cableDiagResultTime = ($SNMPData) ? static::cleanValue($SNMPData[$OIDs['cableDiagResultTime']]) : '-';
+        $data->cableDiagResultDistancePairA = ($SNMPData) ? intval(static::cleanValue($SNMPData[$OIDs['cableDiagResultDistancePairA']])) : '-';
+        $data->cableDiagResultDistancePairB = ($SNMPData) ? intval(static::cleanValue($SNMPData[$OIDs['cableDiagResultDistancePairB']])) : '-';
+        $data->cableDiagResultStatusPairA = ($SNMPData) ? static::cableDiagResultStatus(intval(static::cleanValue($SNMPData[$OIDs['cableDiagResultStatusPairA']]))) : '-';
+        $data->cableDiagResultStatusPairB = ($SNMPData) ? static::cableDiagResultStatus(intval(static::cleanValue($SNMPData[$OIDs['cableDiagResultStatusPairB']]))) : '-';
+        $data->portSpeedDpxStatus = ($SNMPData) ? static::portSpeedDpxStatus(intval(static::cleanValue($SNMPData[$OIDs['portSpeedDpxStatus']]))) : '-';
+        $dhcpSnoopBindingsTable = ($SNMPData) ? snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.4.1.259.6.10.94.1.46.4.1') : array();
+        $macAddressTable = ($SNMPData) ? snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.1') : array();
+        $macPortTable = ($SNMPData) ? snmp2_real_walk($host, SNMP_COMMUNITY_EDGECORE, '.1.3.6.1.2.1.17.4.3.1.2') : array();
         $dhcpSnoopBindingsTableTotal = array();
         $dhcpSnoopBindingsTablePort = array();
 
@@ -115,7 +129,8 @@ class EdgeCore {
     private function cleanValue ($value) {
         $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /', '/STRING: /');
 
-        return str_replace(' ', '-', preg_replace($patterns, '', $value));
+#        return str_replace(' ', '-', preg_replace($patterns, '', $value));
+        return preg_replace($patterns, '', $value);
     }
 
     /**
