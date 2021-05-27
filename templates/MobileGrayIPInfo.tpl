@@ -6,7 +6,7 @@
                 <td><a class='button' target='_blank' href='https://fialka.tv/techsupport/get-log.php?host={HOST}'>LOG</a> Switch</td>
                 <td>Uptime</td>
             </tr>
-                <td>{HOST}</td>
+                <td>{CABLE_TEST_LINK}</td>
                 <td>{SYS_UP_TIME}</td>
             <tr>
             </tr>

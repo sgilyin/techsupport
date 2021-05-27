@@ -129,8 +129,8 @@ class EdgeCore {
     private function cleanValue ($value) {
         $patterns = array('/IpAddress: /', '/INTEGER: /', '/Gauge32: /', '/Hex-STRING: /', '/STRING: /');
 
-#        return str_replace(' ', '-', preg_replace($patterns, '', $value));
-        return preg_replace($patterns, '', $value);
+        return str_replace(' ', '-', preg_replace($patterns, '', $value));
+#        return preg_replace($patterns, '', $value);
     }
 
     /**

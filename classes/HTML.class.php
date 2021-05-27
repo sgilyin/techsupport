@@ -73,6 +73,7 @@ class HTML {
         $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
         $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : '';
         $switchLast = BGB::getLastWorker($host)->fetch_object();
+        $cableTestLink = "<a target=_blank href='/cabletest/?host=$host'>$host</a>";
 
         switch ($edgeCoreData->ifAdminStatus) {
             case 2:
@@ -99,7 +100,8 @@ class HTML {
             '/{IF_ADMIN_STATUS}/', '/{PORT_SPEED_DPX_STATUS}/', '/{PORT_OUT_UTIL}/',
             '/{PORT_IN_UTIL}/', '/{CABLE_DIAG_RESULT_TIME}/', '/{CABLE_A_STATUS}/',
             '/{CABLE_A_DISTANCE}/', '/{CABLE_B_STATUS}/', '/{CABLE_B_DISTANCE}/',
-            '/{ROWS}/', '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/', '/{SWITCH_LAST_WORKER}/');
+            '/{ROWS}/', '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/',
+            '/{SWITCH_LAST_WORKER}/', '/{CABLE_TEST_LINK}/');
 
         $replacements = array($host, $btnChangeIfAdminStatus, $edgeCoreData->sysUpTime,
             $port, $edgeCoreData->ifLastChange, $ifOperStatus, $ifAdminStatus,
@@ -109,7 +111,7 @@ class HTML {
             $edgeCoreData->cableDiagResultDistancePairA,
             $edgeCoreData->cableDiagResultStatusPairB->status,
             $edgeCoreData->cableDiagResultDistancePairB, $rows, $switchLast->date,
-            $switchLast->port, $switchLast->worker);
+            $switchLast->port, $switchLast->worker, $cableTestLink);
 
         return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
                 "/../templates/{$device}GrayIPInfo.tpl"));

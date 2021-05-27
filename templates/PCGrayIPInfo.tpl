@@ -15,7 +15,7 @@
                 <td>Pair B</td>
             </tr>
             <tr>
-                <td>{HOST}</td>
+                <td>{CABLE_TEST_LINK}</td>
                 <td>{SYS_UP_TIME}</td>
                 <td>{PORT}</td>
                 <td>{IF_LAST_CHANGE}</td>
