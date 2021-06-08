@@ -48,7 +48,7 @@ class BX24 {
         switch ($btrxType) {
             case 'GePON':
                 $btrx->responsible_id = 562;// Ответственный 12 - Саня, 18 - Женя, 562 - Сычев
-                $btrx->accomplices = array(1,562,724,6904);// Соисполнители
+                $btrx->accomplices = array(1,562,6904);// Соисполнители
                 $btrx->auditors = array(668,6768);// Наблюдатели
                 $btrx->tags = array('Неисправность','PON', 'Заявка', 'Internet');// Теги задачи
                 $btrx->group_id = 16;// Группа "Неисправности"
