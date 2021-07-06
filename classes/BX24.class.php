@@ -53,6 +53,7 @@ class BX24 {
                 $btrx->tags = array('Неисправность','PON', 'Заявка', 'Internet');// Теги задачи
                 $btrx->group_id = 16;// Группа "Неисправности"
                 $btrx->type = 'PON';
+                $btrx->deadline = 'N';
                 break;
 
             default:
@@ -63,6 +64,7 @@ class BX24 {
                 $btrx->group_id = 16;// Группа "Неисправности"
                 $btrx->type = 'Eth';
                 $btrx->pid = 43;// Поле задачи в Биллинге
+                $btrx->deadline = 'Y';
                 break;
         }
 
@@ -207,7 +209,7 @@ class BX24 {
         $task['fields']['AUDITORS'] = $btrx->auditors;
         $task['fields']['TAGS'] = $btrx->tags;
         $task['fields']['GROUP_ID'] = $btrx->group_id;
-        $task['fields']['ALLOW_CHANGE_DEADLINE'] = 'Y';
+        $task['fields']['ALLOW_CHANGE_DEADLINE'] = $btrx->deadline;
         $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 4 hour'));
         #$task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>$tableServices<br><br>".$bx24Data['description'];
         $task['fields']['DESCRIPTION'] = static::getDescription($cid, $bx24Data, $contractData, $services);
