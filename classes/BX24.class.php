@@ -80,7 +80,7 @@ class BX24 {
         $phonesArray = preg_split("/[ ,;.]/", preg_replace('/[^0-9, ]/', '', $phonesString));
         for ($i = 0; $i < count($phonesArray); $i++) {
             if ($phonesArray[$i]) {
-                $phonesLinksArray[$i] = "<a href='tel:$phonesArray[$i]'>$phonesArray[$i]</a>";
+                $phonesLinksArray[$i] = "[URL=tel:$phonesArray[$i]]$phonesArray[$i][/URL]";
             }
         }
         return implode(', ', $phonesLinksArray);
@@ -107,20 +107,20 @@ class BX24 {
                 . "{$edgeCoreData->cableDiagResultStatusPairA->status} "
                 . "({$edgeCoreData->cableDiagResultDistancePairA}) | "
                 . "{$edgeCoreData->cableDiagResultStatusPairB->status} "
-                . "({$edgeCoreData->cableDiagResultDistancePairB})<br>"
+                . "({$edgeCoreData->cableDiagResultDistancePairB})\n"
                 . "Последние действия: {$switchLast->date} | {$switchLast->port} "
                 . "порт | {$switchLast->worker}";
             }
             if ($services->{$i}->type == 'GePON') {
                 $BDComData = BDCom::getData($services->{$i}->host, $services->{$i}->title);
-                $tdLast = "OLT RX Power: {$BDComData->oltModuleRxPower} DBm<br>"
-                    . "ONU RX Power: {$BDComData->onuModuleRxPower} DBm<br>"
-                    . "ONU TX Power: {$BDComData->onuModuleTxPower} DBm<br>"
+                $tdLast = "OLT RX Power: {$BDComData->oltModuleRxPower} DBm\n"
+                    . "ONU RX Power: {$BDComData->onuModuleRxPower} DBm\n"
+                    . "ONU TX Power: {$BDComData->onuModuleTxPower} DBm\n"
                     . "CTV Power: {$BDComData->onuCtvRxPower} DBm";
             }
-            $rowsServicesTable .= "<tr><td>".$services->{$i}->type . "</td><td>".
-                $services->{$i}->host . "</td><td>" . $services->{$i}->title .
-                "</td><td>$tdLast</td></tr>";
+            $rowsServicesTable .= "[TR][TD]".$services->{$i}->type . "[/TD][TD]".
+                $services->{$i}->host . "[/TD][TD]" . $services->{$i}->title .
+                "[/TD][TD]$tdLast" . "[/TD][/TR]";
         }
 
         $patterns = array('/{CID}/', '/{PHONES}/', '/{ROW_SERVICES}/', '/{COMMENT}/');
@@ -211,7 +211,6 @@ class BX24 {
         $task['fields']['GROUP_ID'] = $btrx->group_id;
         $task['fields']['ALLOW_CHANGE_DEADLINE'] = $btrx->deadline;
         $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 4 hour'));
-        #$task['fields']['DESCRIPTION'] = "ID договора в Биллинге: <a href='https://fialka.tv/tech?cid=$cid'>$cid</a><br>Телефоны: $phones<br><br>$tableServices<br><br>".$bx24Data['description'];
         $task['fields']['DESCRIPTION'] = static::getDescription($cid, $bx24Data, $contractData, $services);
         $task['fields']['START_DATE_PLAN'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00'));
         $task['fields']['END_DATE_PLAN'] = date('c',strtotime($task['fields']['START_DATE_PLAN'].'+ 3 hour'));    

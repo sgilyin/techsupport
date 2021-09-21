@@ -1,12 +1,12 @@
-<p>ID договора в Биллинге: <a href="https://fialka.tv/tech?cid={CID}">{CID}</a></p>
-<p>Телефоны: {PHONES}</p>
-<table>
-    <tr>
-        <td>Тип</td>
-        <td>Коммутатор</td>
-        <td>Сервис</td>
-        <td>Примечание</td>
-    </tr>
+ID договора в Биллинге: [URL=https://fialka.tv/tech?cid={CID}]{CID}[/URL]
+Телефоны: {PHONES}
+[TABLE]
+    [TR]
+        [TD]Тип[/TD]
+        [TD]Коммутатор[/TD]
+        [TD]Сервис[/TD]
+        [TD]Примечание[/TD]
+    [/TR]
     {ROW_SERVICES}
-</table>
-<p>{COMMENT} </p>
+[/TABLE]
+{COMMENT}
