@@ -251,7 +251,7 @@ class HTML {
      * @return \stdClass
      */
     private function parse($serviceTitle) {
-        if (preg_match('/\/([1-4])\:(\d*)\(([0-9,A-F,a-f]{12})\)/', $serviceTitle, $matches)) {
+        if (preg_match('/\/([1-4])\:(\d*)\)?\(+([0-9,A-F,a-f]{12})\)/', $serviceTitle, $matches)) {
             $service = new stdClass;
             $service->port = $matches[1];
             $service->llid = $matches[2];
