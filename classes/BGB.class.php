@@ -48,11 +48,12 @@ class BGB {
      */
     public static function getLastWorker($host) {
         $query = "
-SELECT  t_is15.dateFrom date, t_is15.interfaceId port, t_is15.comment worker
+SELECT  t_csl.date date, t_is15.interfaceId port, t_is15.comment worker
 FROM inet_serv_15 t_is15
 JOIN inet_device_tree_15 t_idt15 ON t_idt15.id=t_is15.deviceId
 JOIN inv_device_15 t_id15 ON t_id15.id=t_idt15.invDeviceId
-WHERE t_id15.host='$host'
+LEFT JOIN contract_status_log t_csl ON t_is15.contractId=t_csl.cid
+WHERE t_is15.dateFrom=t_csl.date1 AND t_id15.host='$host'
 ORDER BY t_is15.dateFrom DESC
 LIMIT 1
             ";
