@@ -235,14 +235,30 @@ class HTML {
      * @return string
      */
     private function getMacVendor($mac) {
-        $url = 'https://2ip.ua/ru/services/information-service/mac-find';
-        $post['a'] = 'act';
-        $post['mac'] = $mac;
-        $response = cURL::executeRequest($url, $post, false);
-        $vendor = array();
-        preg_match('/Имя компании:.*\n\t{5}<td>.*<\/td>/m', $response, $vendor);
-
-        return substr(strrchr($vendor[0], ":"), 16);
+        $mysqli = new mysqli(BGB_HOST, BGB_USER, BGB_PASS, 'mac_oui');
+        if (mysqli_connect_errno()) {
+            printf("Подключение к серверу MySQL невозможно. Код ошибки: %s\n", mysqli_connect_error());
+            exit;
+        }
+        $mysqli->query("set character_set_client='utf8'");
+        $mysqli->query("set character_set_results='utf8'");
+        $mysqli->query("set collation_connection='utf8_general_ci'");
+        $pattern = '/[:.-]/';
+        $replacement = '';
+        $mac_vendor = substr(preg_replace($pattern, $replacement, $mac), 0, 6);
+        $result = $mysqli->query("SELECT vendor FROM mac_oui WHERE mac='$mac_vendor'");
+        if ($result->num_rows > 0) {
+            $vendor = $result->fetch_object()->vendor;
+        } else {
+            #GET https://api.macaddress.io/v1?apiKey=YOUR_API_KEY&output=json&search=44:38:39:ff:ef:57
+            $url = "https://api.macaddress.io/v1?search=$mac_vendor&apiKey=" . MAC_TOKEN;
+            $vendor = executeRequest($url, false, false) ?? 'Some error on api.macaddress.io';
+            if ($vendor != 'Some error on api.macaddress.io'){
+                $mysqli->query(sprintf("INSERT INTO mac_oui (mac, vendor) VALUES ('%s', '%s')", $mac_vendor, $vendor));
+            }
+        }
+        $mysqli->close();
+        return $vendor;
     }
 
     /**
