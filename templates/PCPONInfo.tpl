@@ -29,7 +29,7 @@
                 <td>CTV Power</td>
             </tr>
             <tr>
-                <td><a href="{GRAPH_LINK}" target="_blank" >{PORT_MAC}</a></td>
+                <td><a href="{GRAPH_LINK}" target="_blank" >{PORT_MAC}</a>{OIDS}</td>
                 <td>{ONU_STATUS}</td>
                 <td>{IF_LAST_CHANGE}</td>
                 <td>{ONU_DEREG_REASON}</td>

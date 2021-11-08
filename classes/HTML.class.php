@@ -74,6 +74,7 @@ class HTML {
         $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : '';
         $switchLast = BGB::getLastWorker($host)->fetch_object();
         $cableTestLink = "<a target=_blank href='/cabletest/?host=$host'>$host</a>";
+        $oids = ($port) ? "<br>.1.3.6.1.2.1.2.2.1.10.$port<br>.1.3.6.1.2.1.2.2.1.16.$port" : '';
 
         switch ($edgeCoreData->ifAdminStatus) {
             case 2:
@@ -101,7 +102,7 @@ class HTML {
             '/{PORT_IN_UTIL}/', '/{CABLE_DIAG_RESULT_TIME}/', '/{CABLE_A_STATUS}/',
             '/{CABLE_A_DISTANCE}/', '/{CABLE_B_STATUS}/', '/{CABLE_B_DISTANCE}/',
             '/{ROWS}/', '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/',
-            '/{SWITCH_LAST_WORKER}/', '/{CABLE_TEST_LINK}/');
+            '/{SWITCH_LAST_WORKER}/', '/{CABLE_TEST_LINK}/', '/{OIDS}/');
 
         $replacements = array($host, $btnChangeIfAdminStatus, $edgeCoreData->sysUpTime,
             $port, $edgeCoreData->ifLastChange, $ifOperStatus, $ifAdminStatus,
@@ -111,7 +112,7 @@ class HTML {
             $edgeCoreData->cableDiagResultDistancePairA,
             $edgeCoreData->cableDiagResultStatusPairB->status,
             $edgeCoreData->cableDiagResultDistancePairB, $rows, $switchLast->date,
-            $switchLast->port, $switchLast->worker, $cableTestLink);
+            $switchLast->port, $switchLast->worker, $cableTestLink, $oids);
 
         return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
                 "/../templates/{$device}GrayIPInfo.tpl"));
@@ -146,7 +147,8 @@ class HTML {
         $ifAdminStatus = ($BDComData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : 'Up';
         $service = static::parse($portMac);
         $mapAddress = BGB::getSwitchAddress($host);
-        $grachLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port= EPON0/{$service->port}:{$service->llid}";
+        $graphLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port= EPON0/{$service->port}:{$service->llid}";
+        $oids = ($BDComData->ifIndex) ? "<br>.1.3.6.1.2.1.2.2.1.10.$BDComData->ifIndex<br>.1.3.6.1.2.1.2.2.1.16.$BDComData->ifIndex" : '';
 
         if (isset($BDComData->nmsBindingsEntry)) {
             for ($i = 0; $i < count($BDComData->nmsBindingsEntry); $i++) {
@@ -161,12 +163,12 @@ class HTML {
         $patterns = array('/{HOST}/', '/{PORT_MAC}/', '/{SYS_UP_TIME}/', '/{IF_ADMIN_STATUS}/',
             '/{IF_OPER_STATUS}/', '/{OLT_RX_POWER}/', '/{ONU_STATUS}/', '/{IF_LAST_CHANGE}/',
             '/{ONU_DEREG_REASON}/', '/{ONU_RX_POWER}/', '/{ONU_TX_POWER}/', '/{ONU_CTV_POWER}/',
-            '/{ROWS}/', '/{GRAPH_LINK}/');
+            '/{ROWS}/', '/{GRAPH_LINK}/', '/{OIDS}/');
 
         $replacements = array($host, $portMac, $BDComData->sysUpTime, $ifAdminStatus,
             $ifOperStatus, $BDComData->oltModuleRxPower, $BDComData->onuStatus,
             $BDComData->ifLastChange, $BDComData->onuDeregReason, $BDComData->onuModuleRxPower,
-            $BDComData->onuModuleTxPower, $BDComData->onuCtvRxPower, $rows, $grachLink);
+            $BDComData->onuModuleTxPower, $BDComData->onuCtvRxPower, $rows, $graphLink, $oids);
 
         return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
                 "/../templates/{$device}PONInfo.tpl"));

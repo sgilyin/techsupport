@@ -17,7 +17,7 @@
             <tr>
                 <td>{CABLE_TEST_LINK}</td>
                 <td>{SYS_UP_TIME}</td>
-                <td>{PORT}</td>
+                <td>{PORT}{OIDS}</td>
                 <td>{IF_LAST_CHANGE}</td>
                 <td>{IF_OPER_STATUS}{IF_ADMIN_STATUS} ({PORT_SPEED_DPX_STATUS})</td>
                 <td>{PORT_OUT_UTIL} Mbps</td>

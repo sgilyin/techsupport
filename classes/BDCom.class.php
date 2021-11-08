@@ -37,6 +37,7 @@ class BDCom {
         $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($serviceHost, SNMP_COMMUNITY_BDCOM, '.1.3.6.1.2.1.1.3.0'));
         $data->sysUpTime = static::timeticksConvert($sysUpTime);
         $service->onuId = static::getOnuId($service);
+        $data->ifIndex = $service->onuId;
         $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2", snmp2_get($service->host, SNMP_COMMUNITY_BDCOM, ".1.3.6.1.2.1.2.2.1.9.{$service->onuId}"));
         $data->ifAdminStatus = intval(static::cleanValue(snmp2_get($service->host, SNMP_COMMUNITY_BDCOM, ".1.3.6.1.2.1.2.2.1.7.{$service->onuId}")));
         $data->ifOperStatus = intval(static::cleanValue(snmp2_get($service->host, SNMP_COMMUNITY_BDCOM, ".1.3.6.1.2.1.2.2.1.8.{$service->onuId}")));
