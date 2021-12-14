@@ -51,19 +51,30 @@ if (!$inputRequestData['cid']){
 
         switch ($service->type) {
             case 'Gray-IP':
-                if ($inputRequestData['btnCableTest']){
-                    EdgeCore::cableTest($service->host, preg_replace('/\D+/', '', $service->title));
-                }
+                $patterns = array('/Gray-IP-/', '/White-IP-/', '/[:-].*/');
+                $replacements = '';
+                $switch = preg_replace($patterns, $replacements, $service->switch);
+                switch ($switch) {
+                    case 'EdgeCore':
+                        if ($inputRequestData['btnCableTest']){
+                            EdgeCore::cableTest($service->host, preg_replace('/\D+/', '', $service->title));
+                        }
+                        if ($inputRequestData['btnShutdown']){
+                            EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 2);
+                        }
+                        if ($inputRequestData['btnNoShutdown']){
+                            EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 1);
+                        }
+                        echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device, $switch);
+                        break;
+                    case 'SNR':
+                        echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device, $switch);
+                        break;
 
-                if ($inputRequestData['btnShutdown']){
-                    EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 2);
+                    default:
+                        echo 'Неизвестный тип устройства';
+                        break;
                 }
-
-                if ($inputRequestData['btnNoShutdown']){
-                    EdgeCore::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 1);
-                }
-
-                echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device);
                 break;
 
             case 'White-IP':

@@ -68,15 +68,15 @@ class HTML {
      * @param string $device
      * @return string
      */
-    public static function getGraySwitchInfo($host, $port, $device) {
-        $edgeCoreData = EdgeCore::getData($host, $port);
-        $ifOperStatus = ($edgeCoreData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
-        $ifAdminStatus = ($edgeCoreData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : '';
+    public static function getGraySwitchInfo($host, $port, $device, $switch) {
+        $switchData = $switch::getData($host, $port);
+        $ifOperStatus = ($switchData->ifOperStatus == 1)? 'Up' : '<font color="red"><b>Down</b></font>';
+        $ifAdminStatus = ($switchData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : '';
         $switchLast = BGB::getLastWorker($host)->fetch_object();
         $cableTestLink = "<a target=_blank href='/cabletest/?host=$host'>$host</a>";
         $oids = ($port) ? "<br>.1.3.6.1.2.1.2.2.1.10.$port<br>.1.3.6.1.2.1.2.2.1.16.$port" : '';
 
-        switch ($edgeCoreData->ifAdminStatus) {
+        switch ($switchData->ifAdminStatus) {
             case 2:
                 $btnChangeIfAdminStatus = "<input type='submit' name='btnNoShutdown' value='No Shu'>";
                 break;
@@ -86,33 +86,37 @@ class HTML {
                 break;
         }
 
-        if (isset($edgeCoreData->dhcpSnoopBinPort)) {
-            for ($i = 0; $i < count($edgeCoreData->dhcpSnoopBinPort); $i++) {
-                $rows .= "<tr><td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['vlan'] . "</td>
-                    <td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['IpAddress'] . "</td>
-                    <td>" . gmdate("H:i:s", $edgeCoreData->dhcpSnoopBinPort[$i]['LeaseTime']) . "</td>
-                    <td>" . $edgeCoreData->dhcpSnoopBinPort[$i]['mac'] . "</td>
-                    <td>" . static::getMacVendor($edgeCoreData->dhcpSnoopBinPort[$i]['mac']) . "</td></tr>";
+//test
+        $rows = '';
+        $format = '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>';
+
+        foreach ($switchData->devices as $swDevice) {
+            $rows .= sprintf($format, $swDevice['vlan'], $swDevice['ip'],
+                gmdate("H:i:s", $swDevice['lease']), $swDevice['mac'],
+                self::getMacVendor($swDevice['mac']));
+        }
+/*
+        if (isset($switchData->dhcpSnoopBinPort)) {
+            for ($i = 0; $i < count($switchData->dhcpSnoopBinPort); $i++) {
+                $rows .= "<tr><td>" . $switchData->dhcpSnoopBinPort[$i]['vlan'] . "</td>
+                    <td>" . $switchData->dhcpSnoopBinPort[$i]['IpAddress'] . "</td>
+                    <td>" . gmdate("H:i:s", $switchData->dhcpSnoopBinPort[$i]['LeaseTime']) . "</td>
+                    <td>" . $switchData->dhcpSnoopBinPort[$i]['mac'] . "</td>
+                    <td>" . static::getMacVendor($switchData->dhcpSnoopBinPort[$i]['mac']) . "</td></tr>";
             }
         }
+*/
+        $patterns = array('/{HOST}/', '/{BTN_CHANGE_IF_ADMIN_STATUS}/', '/{SYS_UP_TIME}/',
+            '/{PORT}/', '/{IF_LAST_CHANGE}/', '/{IF_OPER_STATUS}/', '/{IF_ADMIN_STATUS}/',
+            '/{IF_SPEED}/', '/{IF_USAGE}/', '/{CABLE_DIAG}/', '/{ROWS}/',
+            '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/', '/{SWITCH_LAST_WORKER}/',
+            '/{CABLE_TEST_LINK}/', '/{OIDS}/');
 
-        $patterns = array('/{HOST}/', '/{BTN_CHANGE_IF_ADMIN_STATUS}/',
-            '/{SYS_UP_TIME}/', '/{PORT}/', '/{IF_LAST_CHANGE}/', '/{IF_OPER_STATUS}/',
-            '/{IF_ADMIN_STATUS}/', '/{PORT_SPEED_DPX_STATUS}/', '/{PORT_OUT_UTIL}/',
-            '/{PORT_IN_UTIL}/', '/{CABLE_DIAG_RESULT_TIME}/', '/{CABLE_A_STATUS}/',
-            '/{CABLE_A_DISTANCE}/', '/{CABLE_B_STATUS}/', '/{CABLE_B_DISTANCE}/',
-            '/{ROWS}/', '/{SWITCH_LAST_DATE}/', '/{SWITCH_LAST_PORT}/',
-            '/{SWITCH_LAST_WORKER}/', '/{CABLE_TEST_LINK}/', '/{OIDS}/');
-
-        $replacements = array($host, $btnChangeIfAdminStatus, $edgeCoreData->sysUpTime,
-            $port, $edgeCoreData->ifLastChange, $ifOperStatus, $ifAdminStatus,
-            $edgeCoreData->portSpeedDpxStatus, $edgeCoreData->portOutUtil,
-            $edgeCoreData->portInUtil, $edgeCoreData->cableDiagResultTime,
-            $edgeCoreData->cableDiagResultStatusPairA->status,
-            $edgeCoreData->cableDiagResultDistancePairA,
-            $edgeCoreData->cableDiagResultStatusPairB->status,
-            $edgeCoreData->cableDiagResultDistancePairB, $rows, $switchLast->date,
-            $switchLast->port, $switchLast->worker, $cableTestLink, $oids);
+        $replacements = array($host, $btnChangeIfAdminStatus, $switchData->sysUpTime,
+            $port, $switchData->ifLastChange, $ifOperStatus, $ifAdminStatus,
+            $switchData->ifSpeed, $switchData->ifUsage, $switchData->cableDiag,
+            $rows, $switchLast->date, $switchLast->port, $switchLast->worker,
+            $cableTestLink, $oids);
 
         return preg_replace($patterns, $replacements, file_get_contents(__DIR__ .
                 "/../templates/{$device}GrayIPInfo.tpl"));
@@ -245,7 +249,7 @@ class HTML {
         $mysqli->query("set character_set_client='utf8'");
         $mysqli->query("set character_set_results='utf8'");
         $mysqli->query("set collation_connection='utf8_general_ci'");
-        $pattern = '/[:.-]/';
+        $pattern = '/[ :.-]/';
         $replacement = '';
         $mac_vendor = substr(preg_replace($pattern, $replacement, $mac), 0, 6);
         $result = $mysqli->query("SELECT vendor FROM mac_oui WHERE mac='$mac_vendor'");
@@ -254,7 +258,7 @@ class HTML {
         } else {
             #GET https://api.macaddress.io/v1?apiKey=YOUR_API_KEY&output=json&search=44:38:39:ff:ef:57
             $url = "https://api.macaddress.io/v1?search=$mac_vendor&apiKey=" . MAC_TOKEN;
-            $vendor = executeRequest($url, false, false) ?? 'Some error on api.macaddress.io';
+            $vendor = cURL::executeRequest($url, false, false) ?? 'Some error on api.macaddress.io';
             if ($vendor != 'Some error on api.macaddress.io'){
                 $mysqli->query(sprintf("INSERT INTO mac_oui (mac, vendor) VALUES ('%s', '%s')", $mac_vendor, $vendor));
             }

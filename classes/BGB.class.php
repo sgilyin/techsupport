@@ -86,7 +86,7 @@ WHERE tbl_contract.id=$cid
                 break;
             case 'services':
                 $query = "
-SELECT t_ist15.title type, t_id15.host host, t_is15.title title
+SELECT t_ist15.title type, t_id15.host host, t_is15.title title, t_idt15.title switch
 FROM inet_serv_15 t_is15
 LEFT JOIN inet_serv_type_15 t_ist15 ON t_is15.typeId=t_ist15.id
 LEFT JOIN inet_device_tree_15 t_idt15 ON t_is15.deviceId=t_idt15.id
