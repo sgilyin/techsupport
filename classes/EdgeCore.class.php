@@ -38,10 +38,10 @@ class EdgeCore {
             'cabDiagStatA' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.2.$port",
             'cabDiagStatB' => "iso.3.6.1.4.1.259.6.10.94.1.2.3.2.1.3.$port",
         );
+        $data = new stdClass();
         $SNMPData = snmp2_get($host, SNMP_COMMUNITY_EDGECORE, $OIDs);
         $sysUpTime = preg_replace('/(^\D*)(\d*)(\).*)/', "$2",$SNMPData[$OIDs['sysUpTime']]);
         $ifLastChange = preg_replace('/(^\D*)(\d*)(\).*)/', "$2",$SNMPData[$OIDs['ifLastChange']]);
-        $data = new stdClass();
         $data->sysUpTime = ($SNMPData) ? Core::timeticksConvert($sysUpTime) : '-';
         $data->ifSpeed = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifSpeed']]))/1000000 : '-';
         $data->ifLastChange = ($SNMPData) ? Core::timeticksConvert(intval($sysUpTime)- intval($ifLastChange)) : '-';

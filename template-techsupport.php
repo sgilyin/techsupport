@@ -68,6 +68,15 @@ if (!$inputRequestData['cid']){
                         echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device, $switch);
                         break;
                     case 'SNR':
+                        if ($inputRequestData['btnCableTest']){
+                            SNR::cableTest($service->host, preg_replace('/\D+/', '', $service->title));
+                        }
+                        if ($inputRequestData['btnShutdown']){
+                            SNR::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 0);
+                        }
+                        if ($inputRequestData['btnNoShutdown']){
+                            SNR::changeIfAdminStatus($service->host, preg_replace('/\D+/', '', $service->title), 1);
+                        }
                         echo HTML::getGraySwitchInfo($service->host, preg_replace('/\D+/', '', $service->title), $device, $switch);
                         break;
 

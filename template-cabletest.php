@@ -49,6 +49,7 @@ echo <<<HTML
 HTML;
 
 if ($inputRequestData['host'] && $inputRequestData['port']) {
-    EdgeCore::cableTest($inputRequestData['host'], $inputRequestData['port']);
-    echo HTML::getGraySwitchInfo($inputRequestData['host'], $inputRequestData['port'], $device);
+    $switch = BGB::getSwitchType($inputRequestData['host']);
+    $switch::cableTest($inputRequestData['host'], $inputRequestData['port']);
+    echo HTML::getGraySwitchInfo($inputRequestData['host'], $inputRequestData['port'], $device, $switch);
 }

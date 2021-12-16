@@ -120,4 +120,16 @@ ORDER BY address DESC LIMIT 1
 
         return $address;
     }
+
+    public static function getSwitchType($ip) {
+        $query = "
+SELECT title
+FROM inv_device_15
+WHERE host='$ip'
+";
+        $patterns = array('/Gray-IP-/', '/White-IP-/', '/[:-].*/');
+        $replacements = '';
+        $type = preg_replace($patterns, $replacements, self::sql($query)->fetch_object()->title);
+        return $type;
+    }
 }

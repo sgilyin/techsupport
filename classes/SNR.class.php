@@ -42,18 +42,91 @@ class SNR {
         $data->ifLastChange = ($SNMPData) ? Core::timeticksConvert(intval($sysUpTime)- intval($ifLastChange)) : '-';
         $data->ifAdminStatus = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifAdminStatus']])) : '-';
         $data->ifOperStatus = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifOperStatus']])) : '-';
-        $data->ifUsage = ($SNMPData) ? Core::cleanSNMPValue($SNMPData[$OIDs['portBandWidthUsage']]) : '-';
+        $data->ifUsage = ($SNMPData) ? preg_replace('/[" ]/', '', Core::cleanSNMPValue($SNMPData[$OIDs['portBandWidthUsage']])) : '-';
         $vctLastStatus = Core::cleanSNMPValue($SNMPData[$OIDs['vctLastStatus']]);
         preg_match_all('/\(\d\,[[:blank:]]\d\)[[:blank:]]+\b.+\b[[:blank:]]+\d+/', $vctLastStatus, $cableTest);
         $data->cableDiag = ($SNMPData) ? self::cableDiagText($cableTest[0]) : '-';
+        $data->devices = self::getPortDevices($host, $port);
         return $data;
     }
 
     private static function getPortDevices($host, $port) {
-        
+        $dot1dTpFdbPort = snmp2_real_walk($host, SNMP_COMMUNITY_SNR, 'iso.3.6.1.2.1.17.4.3.1.2');
+        $dhcpSnoopingAckBindingPort = snmp2_real_walk($host, SNMP_COMMUNITY_SNR, 'iso.3.6.1.4.1.40418.7.100.13.3.20.1.3');
+        $devices = array();
+        $idDevices = array();
+        $oids = array();
+        foreach ($dot1dTpFdbPort as $key => $value) {
+            if (Core::cleanSNMPValue($value) == $port){
+                $oidPart = explode(".", $key);
+                $id = implode('.', array_slice($oidPart, -6));
+                if (!in_array($id, $idDevices)) {
+                    $idDevices[] = $id;
+                }
+            }
+        }
+        foreach ($dhcpSnoopingAckBindingPort as $key => $value) {
+            if (Core::cleanSNMPValue($value) == $port){
+                $oidPart = explode(".", $key);
+                $id = implode('.', array_slice($oidPart, -4));
+                if (!in_array($id, $idDevices)) {
+                    $idDevices[] = $id;
+                }
+            }
+        }
+        foreach ($idDevices as $id) {
+            $oidPart = explode(".", $id);
+            switch (count($oidPart)) {
+                case 4:
+                    $oids[] = "iso.3.6.1.4.1.40418.7.100.13.3.20.1.2.$id";
+                    $oids[] = "iso.3.6.1.4.1.40418.7.100.13.3.20.1.4.$id";
+                    break;
+                default:
+                    $oids[] = "iso.3.6.1.2.1.17.4.3.1.1.$id";
+                    break;
+            }
+        }
+        $macAndIp = snmp2_get($host, SNMP_COMMUNITY_SNR, $oids);
+        foreach ($macAndIp as $key => $value) {
+            $oidPart = explode(".", $key);
+            $id = implode('.', array_slice($oidPart, -4));
+            switch (count($oidPart)) {
+                case 18:
+                    switch ($oidPart[13]) {
+                        case 2:
+                            $mac = mb_strtoupper(preg_replace('/[ "-]/', '', Core::cleanSNMPValue($value)));
+                            foreach ($devices as $key => $val) {
+                               if ($val['mac'] === $mac) {
+                                   unset($devices[$key]);
+                                }
+                            }
+                            $devices[$id]['mac'] = $mac;
+                            break;
+                        case 4:
+                            $devices[$id]['ip'] = implode('.', array_slice($oidPart, -4));
+                            $devices[$id]['vlan'] = Core::cleanSNMPValue($value);
+                            break;
+                    }
+                    break;
+                default:
+                    $devices[$id]['mac'] = preg_replace('/[ -]/', '', Core::cleanSNMPValue($value));
+                    break;
+            }
+        }
+        return $devices;
     }
 
     private static function cableDiagText($cableTest) {
         return implode('<br>', $cableTest);
+    }
+ 
+    public static function changeIfAdminStatus($host, $port, $status) {
+        snmp2_set($host, SNMP_COMMUNITY_SNR, "iso.3.6.1.4.1.40418.7.100.3.2.1.12.$port", "i", $status);
+        sleep(4);
+    }
+
+    public static function cableTest($host, $port) {
+        snmp2_set($host, SNMP_COMMUNITY_SNR, "iso.3.6.1.4.1.40418.7.100.3.2.1.18", "i", $port);
+        sleep(4);
     }
 }
