@@ -101,15 +101,20 @@ class BX24 {
         for ($i = 1; $i < $services->count + 1; $i++) {
             $tdLast = '';
             if ($services->{$i}->type == 'Gray-IP') {
-                $switchLast = BGB::getLastWorker($services->{$i}->host)->fetch_object();
-                $edgeCoreData = EdgeCore::getData($services->{$i}->host, preg_replace('/\D+/', '', $services->{$i}->title));
-                $tdLast = "Замер: {$edgeCoreData->cableDiagResultTime} "
-                . "{$edgeCoreData->cableDiagResultStatusPairA->status} "
-                . "({$edgeCoreData->cableDiagResultDistancePairA}) | "
-                . "{$edgeCoreData->cableDiagResultStatusPairB->status} "
-                . "({$edgeCoreData->cableDiagResultDistancePairB})\n"
-                . "Последние действия: {$switchLast->date} | {$switchLast->port} "
-                . "порт | {$switchLast->worker}";
+                $fp = fsockopen($services->{$i}->host, 23, $errno, $errstr, 1);
+                if ($fp) {
+                    fclose($fp);
+                    $switchLast = BGB::getLastWorker($services->{$i}->host)->fetch_object();
+                    $patterns = array('/Gray-IP-/', '/White-IP-/', '/[:-].*/');
+                    $replacements = '';
+                    $switch = preg_replace($patterns, $replacements, $services->{$i}->switch);
+                    $switchData = $switch::getData($services->{$i}->host, preg_replace('/\D+/', '', $services->{$i}->title));
+                    $tdLast = "Замер:\n{$switchData->cableDiag}\n"
+                    . "Последние действия: {$switchLast->date} | {$switchLast->port} "
+                    . "порт | {$switchLast->worker}";
+                } else {
+                    $tdLast = "Коммутатор не пингуется";
+                }
             }
             if ($services->{$i}->type == 'GePON') {
                 $BDComData = BDCom::getData($services->{$i}->host, $services->{$i}->title);
