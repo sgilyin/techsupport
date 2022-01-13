@@ -253,4 +253,29 @@ class BDCom {
 
 	return "$intDays days, $strHours:$strMinutes:$strSeconds"; 
     }
+
+    public static function getLastDereg($host, $reason) {
+        $SNMPData = snmp2_real_walk($host, SNMP_COMMUNITY_BDCOM, "iso.3.6.1.4.1.3320.101.11.1.1.6", 3000000);
+        $i = 0;
+        $arr = array();
+        foreach ($SNMPData as $key => $value) {
+            if (Core::cleanSNMPValue($value) != 5){
+                $oidPart = explode(".", $key);
+                $id = implode('.', array_slice($oidPart, -7));
+                $oids = array(
+                    'channel' => "iso.3.6.1.4.1.3320.101.11.1.1.2.$id",
+                    'deregReason' => "iso.3.6.1.4.1.3320.101.11.1.1.11.$id",
+                );
+                $snmpGet = snmp2_get($host, SNMP_COMMUNITY_BDCOM, $oids);
+                $deregReason = intval(Core::cleanSNMPValue($snmpGet[$oids['deregReason']]));
+                if ($deregReason == 8) {
+                    $arr[$i]['id'] = $id;
+                    $arr[$i]['port'] = intval($oidPart[12])-14;
+                    $arr[$i]['channel'] = intval(Core::cleanSNMPValue($snmpGet[$oids['channel']]));
+                    $i++;
+                }
+            }
+        }
+        return $arr;
+    }
 }

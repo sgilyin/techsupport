@@ -132,4 +132,15 @@ WHERE host='$ip'
         $type = preg_replace($patterns, $replacements, self::sql($query)->fetch_object()->title);
         return $type;
     }
+
+    public static function getCidByHostPort($host, $port) {
+        $query = "
+SELECT is15.contractId cid
+FROM inet_serv_15 is15
+LEFT JOIN inv_device_port_subscription_15 idps15 ON idps15.subscriberId=is15.id
+LEFT JOIN inv_device_15 id15 ON idps15.deviceId=id15.id
+WHERE is15.dateTo IS NULL AND id15.host='$host' AND is15.title REGEXP '$port\[)(]'
+";
+        return self::sql($query)->fetch_object()->cid;
+    }
 }
