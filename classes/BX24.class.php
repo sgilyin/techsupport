@@ -56,13 +56,35 @@ class BX24 {
                 $btrx->deadline = 'N';
                 break;
 
-            default:
+            case 'Gray-IP':
                 $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
                 $btrx->accomplices = array(1);// Соисполнители
                 $btrx->auditors = array(668,6768);// Наблюдатели
                 $btrx->tags = array('Неисправность','Ethernet', 'Заявка', 'Internet');// Теги задачи
                 $btrx->group_id = 16;// Группа "Неисправности"
                 $btrx->type = 'Eth';
+                $btrx->pid = 43;// Поле задачи в Биллинге
+                $btrx->deadline = 'Y';
+                break;
+
+            case 'Sector-Wireless':
+                $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
+                $btrx->accomplices = array(1,12,18);// Соисполнители
+                $btrx->auditors = array(668,6768);// Наблюдатели
+                $btrx->tags = array('Неисправность','Wireless', 'Заявка', 'Internet');// Теги задачи
+                $btrx->group_id = 16;// Группа "Неисправности"
+                $btrx->type = 'WiFi';
+                $btrx->pid = 43;// Поле задачи в Биллинге
+                $btrx->deadline = 'Y';
+                break;
+
+            default:
+                $btrx->responsible_id = 6902;// Ответственный 12 - Саня, 18 - Женя, 6902 - Степанов
+                $btrx->accomplices = array(1,6902,6904);// Соисполнители
+                $btrx->auditors = array(668,6768);// Наблюдатели
+                $btrx->tags = array('Неисправность','TV', 'Заявка');// Теги задачи
+                $btrx->group_id = 16;// Группа "Неисправности"
+                $btrx->type = 'CTV';
                 $btrx->pid = 43;// Поле задачи в Биллинге
                 $btrx->deadline = 'Y';
                 break;
@@ -142,12 +164,27 @@ class BX24 {
      * @return string
      */
     private static function getBtrxType($services) {
-        $btrxType = 'Gray-IP';
+#        $btrxType = 'Gray-IP';
 
         for ($i = 1; $i < $services->count + 1; $i++) {
-            if ($services->{$i}->type == 'GePON') {
-                $btrxType = 'GePON';
+            switch ($services->{$i}->type) {
+                case 'GePON':
+                    $btrxType = 'GePON';
+                    break;
+                case 'Gray-IP':
+                    $btrxType = 'Gray-IP';
+                    break;
+                case 'Sector-Wireless':
+                    $btrxType = 'Sector-Wireless';
+                    break;
+
+                default:
+                    $btrxType = 'CTV';
+                    break;
             }
+#            if ($services->{$i}->type == 'GePON') {
+#                $btrxType = 'GePON';
+#            }
         }
 
         return $btrxType;
@@ -206,7 +243,7 @@ class BX24 {
 
         $btrxType = static::getBtrxType($services);
 
-        $btrx = static::getParams($btrxType);
+        $btrx = ($bx24Data['type'] == 'CTV' && $btrxType == 'Gray-IP') ? static::getParams(false) : static::getParams($btrxType);
 
         $task['fields']['TITLE'] = "$halfDay | $btrx->type | ".$bx24Data['type']." | ".$bx24Data['address'].$preCall;
         $task['fields']['RESPONSIBLE_ID'] = $btrx->responsible_id;

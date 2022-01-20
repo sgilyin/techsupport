@@ -18,6 +18,8 @@
                             <label for='bxTypeSpeedtest'>Speedtest</label>
                             <input type='radio' name='bx[type]' value='Роутер' id='bxTypeRouter'>
                             <label for='bxTypeRouter'>Роутер</label>
+                            <input type='radio' name='bx[type]' value='CTV' id='bxTypeCTV'>
+                            <label for='bxTypeCTV'>КТВ</label>
                         </td>
                     </tr>
                     <tr>
