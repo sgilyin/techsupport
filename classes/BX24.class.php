@@ -67,6 +67,17 @@ class BX24 {
                 $btrx->deadline = 'Y';
                 break;
 
+            case 'White-IP':
+                $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
+                $btrx->accomplices = array(1);// Соисполнители
+                $btrx->auditors = array(668,6768);// Наблюдатели
+                $btrx->tags = array('Неисправность','Ethernet', 'Заявка', 'Internet');// Теги задачи
+                $btrx->group_id = 16;// Группа "Неисправности"
+                $btrx->type = 'Eth';
+                $btrx->pid = 43;// Поле задачи в Биллинге
+                $btrx->deadline = 'Y';
+                break;
+
             case 'Sector-Wireless':
                 $btrx->responsible_id = 18;// Ответственный 12 - Саня, 18 - Женя
                 $btrx->accomplices = array(1,12,18);// Соисполнители
@@ -164,6 +175,23 @@ class BX24 {
      * @return string
      */
     private static function getBtrxType($services) {
+        $services = json_decode(json_encode($services), true);
+        error_log(PHP_EOL . serialize($services) . PHP_EOL);
+        switch ($services) {
+            case (in_array('Gray-IP', array_column($services, 'type'))):
+                $btrxType = 'Gray-IP';
+                break;
+            case (in_array('GePON', array_column($services, 'type'))):
+                $btrxType = 'GePON';
+                break;
+            case (in_array('Sector-Wireless', array_column($services, 'type'))):
+                $btrxType = 'Sector-Wireless';
+                break;
+            default:
+                $btrxType = 'CTV';
+                break;
+        }
+/*
 #        $btrxType = 'Gray-IP';
 
         for ($i = 1; $i < $services->count + 1; $i++) {
@@ -177,6 +205,9 @@ class BX24 {
                 case 'Sector-Wireless':
                     $btrxType = 'Sector-Wireless';
                     break;
+                case 'White-IP':
+                    $btrxType = 'White-IP';
+                    break;
 
                 default:
                     $btrxType = 'CTV';
@@ -186,7 +217,7 @@ class BX24 {
 #                $btrxType = 'GePON';
 #            }
         }
-
+*/
         return $btrxType;
     }
 
@@ -214,6 +245,12 @@ class BX24 {
                 break;
             case 4161:
                 $task['fields']['CREATED_BY'] = 16;
+                break;
+            case 4168:
+                $task['fields']['CREATED_BY'] = 964;
+                break;
+            case 4169:
+                $task['fields']['CREATED_BY'] = 7262;
                 break;
 
             default:
