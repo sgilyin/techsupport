@@ -23,17 +23,7 @@ spl_autoload_register(function ($class) {
 });
 
 get_header();
-$inputRequestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
-
-switch ($inputRequestMethod){
-    case 'GET':
-        $inputRequestData = filter_input_array(INPUT_GET);
-        break;
-    case 'POST':
-        $inputRequestData = filter_input_array(INPUT_POST);
-        break;
-}
-
+$inputRequestData = filter_input_array(INPUT_POST) ?? filter_input_array(INPUT_GET);
 $device = (preg_match('/Android|iPhone/', filter_input(INPUT_SERVER, 'HTTP_USER_AGENT'))) ? 'Mobile' : 'PC';
 
 echo <<<HTML

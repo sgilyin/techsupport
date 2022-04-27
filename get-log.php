@@ -28,15 +28,6 @@ spl_autoload_register(function ($class) {
     }
 });
 
-$inputRequestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
-
-switch ($inputRequestMethod){
-    case 'GET':
-        $inputRequestData = filter_input_array(INPUT_GET);
-        break;
-    case 'POST':
-        $inputRequestData = filter_input_array(INPUT_POST);
-        break;
-}
+$inputRequestData = filter_input_array(INPUT_POST) ?? filter_input_array(INPUT_GET);
 
 echo 'LOG коммутатора ' . $inputRequestData['host'] . ':<br>' . rSysLog::getLog($inputRequestData['host']);
