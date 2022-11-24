@@ -49,7 +49,7 @@ for ($index = 101; $index < 128; $index++) {
             foreach ($onus as $onu) {
                 $cid = BGB::getCidByHostPort($host, "{$onu['port']}:{$onu['channel']}");
                 $mapAddress = BGB::getSwitchAddress($host);
-                $graphLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port= EPON0/{$onu['port']}:{$onu['channel']}";
+                $graphLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface-signal-level?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port=EPON0/{$onu['port']}:{$onu['channel']}";
                 $portLink = sprintf("<a target=_blank href='%s'>%s</a>", $graphLink, "{$onu['port']}:{$onu['channel']}");
                 $techLink = "https://fialka.tv/tech/?cid=$cid";
                 $cidLink = sprintf("<a target=_blank href='%s'>%s</a>", $techLink, $cid);

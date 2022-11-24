@@ -145,7 +145,7 @@ class HTML {
         $ifAdminStatus = ($BDComData->ifAdminStatus == 2)? '. <font color="red"><b>Shutdown!</b></font>' : 'Up';
         $service = static::parse($portMac);
         $mapAddress = BGB::getSwitchAddress($host);
-        $graphLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port= EPON0/{$service->port}:{$service->llid}";
+        $graphLink = "https://zbx.fialka.tv/d/d3FaolEMk/epon-interface-signal-level?orgId=1&from=now-24h&to=now&var-Group=PON&var-Host={$mapAddress} ({$host})&var-port=EPON0/{$service->port}:{$service->llid}";
         $oids = ($BDComData->ifIndex) ? "<br>.1.3.6.1.2.1.2.2.1.10.$BDComData->ifIndex<br>.1.3.6.1.2.1.2.2.1.16.$BDComData->ifIndex" : '';
 
         if (isset($BDComData->nmsBindingsEntry)) {
