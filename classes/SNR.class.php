@@ -39,7 +39,7 @@ class SNR {
         $data = new stdClass();
         $data->sysUpTime = ($SNMPData) ? Core::cleanSNMPValue($SNMPData[$OIDs['sysUpTime']]) : '-';
         $data->ifSpeed = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifSpeed']]))/1000000 : '-';
-        $data->ifLastChange = ($SNMPData) ? Core::timeticksConvert(intval($sysUpTime)- intval($ifLastChange)) : '-';
+        $data->ifLastChange = ($SNMPData) ? Core::timeticksConvert(intval($ifLastChange)) : '-';
         $data->ifAdminStatus = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifAdminStatus']])) : '-';
         $data->ifOperStatus = ($SNMPData) ? intval(Core::cleanSNMPValue($SNMPData[$OIDs['ifOperStatus']])) : '-';
         $data->ifUsage = ($SNMPData) ? preg_replace('/[" ]/', '', Core::cleanSNMPValue($SNMPData[$OIDs['portBandWidthUsage']])) : '-';
