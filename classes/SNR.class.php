@@ -126,7 +126,7 @@ class SNR {
     }
 
     public static function cableTest($host, $port) {
-        snmp2_set($host, SNMP_COMMUNITY_SNR, "iso.3.6.1.4.1.40418.7.100.3.2.1.18", "i", $port);
+        snmp2_set($host, SNMP_COMMUNITY_SNR, "iso.3.6.1.4.1.40418.7.100.3.2.1.18.$port", "i", 1);
         sleep(4);
     }
 }
