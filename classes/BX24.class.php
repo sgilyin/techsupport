@@ -259,7 +259,7 @@ class BX24 {
         }
 
         switch (intval($bx24Data['halfDay'])) {
-            case 14:
+            case 13:
                 $halfDay = 2;
                 break;
 
@@ -289,10 +289,10 @@ class BX24 {
         $task['fields']['TAGS'] = $btrx->tags;
         $task['fields']['GROUP_ID'] = $btrx->group_id;
         $task['fields']['ALLOW_CHANGE_DEADLINE'] = $btrx->deadline;
-        $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 4 hour'));
+        $task['fields']['DEADLINE'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00 + 5 hour'));
         $task['fields']['DESCRIPTION'] = static::getDescription($cid, $bx24Data, $contractData, $services);
         $task['fields']['START_DATE_PLAN'] = date('c',strtotime($bx24Data['date'].' '.$bx24Data['halfDay'].':00:00'));
-        $task['fields']['END_DATE_PLAN'] = date('c',strtotime($task['fields']['START_DATE_PLAN'].'+ 3 hour'));    
+        $task['fields']['END_DATE_PLAN'] = date('c',strtotime($task['fields']['START_DATE_PLAN'].'+ 4 hour'));    
 
         return json_decode(static::callMethod('tasks.task.add.json', http_build_query($task)));
     }

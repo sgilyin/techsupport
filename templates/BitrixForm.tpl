@@ -27,10 +27,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <input type='radio' name='bx[halfDay]' value='9' id='bxHalfDay1'>
-                            <label for='bxHalfDay1'>9-12</label>
-                            <input type='radio' name='bx[halfDay]' value='14' id='bxHalfDay2'>
-                            <label for='bxHalfDay2'>14-17</label>
+                            <input type='radio' name='bx[halfDay]' value='8' id='bxHalfDay1'>
+                            <label for='bxHalfDay1'>8-12</label>
+                            <input type='radio' name='bx[halfDay]' value='13' id='bxHalfDay2'>
+                            <label for='bxHalfDay2'>13-17</label>
                             <input type='date' name='bx[date]'>
                             <label for='preCall'>Предварительный звонок</label>
                             <input type='checkbox' name='bx[preCall]' id='preCall'>
