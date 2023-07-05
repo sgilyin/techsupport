@@ -29,6 +29,7 @@
                 <td>Lease</td>
                 <td>MAC Address</td>
                 <td>MAC Vendor</td>
+                <td>Hostname</td>
             </tr>
             {ROWS}
         </table>
