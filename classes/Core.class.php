@@ -40,4 +40,12 @@ class Core {
         #return str_replace(' ', '-', preg_replace($patterns, '', $value));
         return preg_replace($patterns, '', $value);
     }
+
+    public static function macFormat($mac, $sep = '') {
+        if (strlen($mac) > 12) {
+            $search = array(':','.',' ');
+            $mac = str_replace($search, '', $mac);
+        }
+        return substr(chunk_split($mac, 2, $sep),0,12 + 5 * strlen($sep));
+    }
 }
