@@ -22,3 +22,4 @@ define('RSYSLOG_USER', 'RSYSLOG_USER');
 define('RSYSLOG_PASS', 'RSYSLOG_PASS');
 define('RSYSLOG_DB', 'RSYSLOG_DB');
 define('MAC_TOKEN', 'MAC_TOKEN');
+define('KEA_DHCP_HOST', 'KEA_DHCP_HOST');
