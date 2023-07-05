@@ -27,6 +27,13 @@ $inputRequestData = filter_input_array(INPUT_POST) ?? filter_input_array(INPUT_G
 if (!$inputRequestData['cid']){
     echo HTML::getSearchForm(false, $device);
 } else {
+    if ($inputRequestData['btnDelKeaLease']) {
+        $args['ip-address'] = $inputRequestData['btnDelKeaLease'];
+        $delKeaLease = KEADHCP::exec('dhcp4', 'lease4-del', $args);
+        if ($delKeaLease[0]->result == 0) {
+            echo "<script language='javascript'>alert('IP-адрес {$inputRequestData['btnDelKeaLease']} удален из базы DHCP')</script>";
+        }
+    }
     $cid = $inputRequestData['cid'];
     echo HTML::getSearchForm($cid, $device);
     $contractData = BGB::getData($cid, 'contract')->fetch_object();
