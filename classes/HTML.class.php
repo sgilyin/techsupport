@@ -82,7 +82,8 @@ class HTML {
             $switchLast = BGB::getLastWorker($host)->fetch_object();
             $mapAddress = BGB::getSwitchAddress($host);
             $cableTestLink = "<a target=_blank href='https://zbx.fialka.tv/d/cm2mnzTnk/accessproblems?orgId=1&var-ip=$host'>$host</a> ($mapAddress)<br>"
-                . "<a target=_blank href='/cabletest/?host=$host'>Замер по портам</a>";
+                . "<a target=_blank href='/cabletest/?host=$host'>Замер по портам</a><br>"
+                . "<a target=_blank href='/switch-subscribers/?host=$host'>Абоненты по портам</a>";
             $oids = ($port) ? "<br>.1.3.6.1.2.1.2.2.1.10.$port<br>.1.3.6.1.2.1.2.2.1.16.$port" : '';
             switch ($switchData->ifAdminStatus) {
                 case 2:
@@ -94,11 +95,29 @@ class HTML {
                     break;
             }
             $rows = '';
-            $format = '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>';
+            $format = '<tr><td>%s</td><td>%s%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>';
             foreach ($switchData->devices as $swDevice) {
-                $rows .= sprintf($format, $swDevice['vlan'], $swDevice['ip'],
-                    gmdate("H:i:s", $swDevice['lease']), $swDevice['mac'],
-                    self::getMacVendor($swDevice['mac']));
+                $hwAddress = Core::macFormat($swDevice['mac'], ':');
+                $btnDelKeaLease = '';
+                $existSnoop = $existKea = '';
+                $hostName = '';
+                $leaseGet = json_decode(KEADHCP::lease4GetByHWAddress($hwAddress))[0];
+                if ($leaseGet->result == 0) {
+                    $lease = $leaseGet->arguments->leases[0];
+                    $existKea = ' KEA';
+                    $ipAddress = $lease->{'ip-address'};
+                    $hostName = $lease->hostname;
+                    $btnDelKeaLease = "<input type='submit' name='btnDelKeaLease' value='$ipAddress'>";
+                    $restLease = gmdate("H:i:s", $lease->{'valid-lft'} + $lease->cltt - time());
+                    if ($swDevice['ip'] != '') {$existSnoop = ' SNP';}
+                } else {
+                    if ($swDevice['ip'] != '') {
+                        $existSnoop = "{$swDevice['ip']} SNP";
+                    }
+                }
+                $rows .= sprintf($format, $swDevice['vlan'], $btnDelKeaLease,
+                    $existKea, $existSnoop, $restLease, $hwAddress,
+                    self::getMacVendor($hwAddress), $hostName);
             }
             $patterns = array('/{HOST}/', '/{BTN_CHANGE_IF_ADMIN_STATUS}/', '/{SYS_UP_TIME}/',
                 '/{PORT}/', '/{IF_LAST_CHANGE}/', '/{IF_OPER_STATUS}/', '/{IF_ADMIN_STATUS}/',
@@ -149,12 +168,29 @@ class HTML {
         $oids = ($BDComData->ifIndex) ? "<br>.1.3.6.1.2.1.2.2.1.10.$BDComData->ifIndex<br>.1.3.6.1.2.1.2.2.1.16.$BDComData->ifIndex" : '';
 
         if (isset($BDComData->nmsBindingsEntry)) {
+            $format = '<tr><td>%s</td><td>%s%s%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>';
             for ($i = 0; $i < count($BDComData->nmsBindingsEntry); $i++) {
-                $rows .= "<tr><td>" . $BDComData->nmsBindingsEntry[$i]['vlan'] . "</td>
-                    <td>" . $BDComData->nmsBindingsEntry[$i]['ip'] . "</td>
-                    <td>" . gmdate("H:i:s", $BDComData->nmsBindingsEntry[$i]['lease']) . "</td>
-                    <td>" . $BDComData->nmsBindingsEntry[$i]['mac'] . "</td>
-                    <td>" . static::getMacVendor($BDComData->nmsBindingsEntry[$i]['mac']) . "</td></tr>";
+                $hwAddress = Core::macFormat($BDComData->nmsBindingsEntry[$i]['mac'], ':');
+                $btnDelKeaLease = '';
+                $existSnoop = $existKea = '';
+                $hostName = '';
+                $leaseGet = json_decode(KEADHCP::lease4GetByHWAddress($hwAddress))[0];
+                if ($leaseGet->result == 0) {
+                    $lease = $leaseGet->arguments->leases[0];
+                    $existKea = ' KEA';
+                    $ipAddress = $lease->{'ip-address'};
+                    $hostName = $lease->hostname;
+                    $btnDelKeaLease = "<input type='submit' name='btnDelKeaLease' value='$ipAddress'>";
+                    $restLease = gmdate("H:i:s", $lease->{'valid-lft'} + $lease->cltt - time());
+                    if ($BDComData->nmsBindingsEntry[$i]['ip'] != '') {$existSnoop = ' SNP';}
+                } else {
+                    if ($BDComData->nmsBindingsEntry[$i]['ip'] != '') {
+                        $existSnoop = "{$swDevice['ip']} SNP";
+                    }
+                }
+                $rows .= sprintf($format, $BDComData->nmsBindingsEntry[$i]['vlan'],
+                    $btnDelKeaLease, $existKea, $existSnoop, $restLease, $hwAddress,
+                    self::getMacVendor($hwAddress), $hostName);
             }
         }
 
